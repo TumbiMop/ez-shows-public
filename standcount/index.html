@@ -123,13 +123,52 @@ var D = null, ITEMS = [], STAP = 0, WAARDEN = {}, TELLER = '';
 /* ---- de link uitpakken -------------------------------------------------- */
 function uitHash(){
   var h = String(location.hash || '').replace(/^#/, '');
-  if (!h) return null;
+  if (!h) return 'leeg';
+  var txt;
   try {
     var b64 = h.replace(/-/g, '+').replace(/_/g, '/');
     while (b64.length % 4) b64 += '=';
-    var ruw = atob(b64);
     /* atob geeft bytes; via escape/decodeURIComponent komen accenten goed terug. */
-    return JSON.parse(decodeURIComponent(escape(ruw)));
+    txt = decodeURIComponent(escape(atob(b64)));
+  } catch (e){ return null; }
+
+  /* Links van voor de verkorting zijn JSON. Die blijven werken: een link die al
+     in iemands WhatsApp staat hoort niet stuk te gaan omdat ik de vorm veranderde. */
+  if (txt.charAt(0) === '{'){
+    try { return JSON.parse(txt); } catch (e){ return null; }
+  }
+
+  /* De korte vorm. Drie scheidingstekens die in geen artikelnaam voorkomen, dus
+     er valt niets verkeerd te splitsen en hoeft er niets ontsnapt te worden. */
+  try {
+    var V = '\x01', R = '\x02', S = '\x03';
+    var k = txt.split(V);
+    if (k[0] !== '1') return null;
+    var d = {
+      b: k[1], v: k[2],
+      d: (k[3] && k[3].length === 8)
+           ? k[3].slice(0,4) + '-' + k[3].slice(4,6) + '-' + k[3].slice(6)
+           : k[3],
+      s: k[4], n: k[5], m: (k[6] === 'I' ? 'in' : 'final'),
+      c: k[7], w: k[8], t: null, r: []
+    };
+    if (k[9]){
+      d.t = {};
+      k[9].split(',').forEach(function(p){
+        var m = /^(\d+):(-?\d+)$/.exec(p);
+        if (m) d.t[m[1]] = m[2];
+      });
+    }
+    var vorig = null;
+    (k[10] || '').split(R).forEach(function(rij){
+      if (!rij) return;
+      var v = rij.split(S);
+      var no = (v[0] === '') ? (vorig === null ? 0 : vorig + 1) : parseInt(v[0], 10);
+      vorig = no;
+      var kn = v[1] || '';
+      d.r.push([no, kn.slice(1), kn.charAt(0), (v[2] === '' || v[2] == null) ? null : parseInt(v[2], 10)]);
+    });
+    return d.r.length ? d : null;
   } catch (e){ return null; }
 }
 
