@@ -388,6 +388,13 @@ function balkBij(){
   document.title = D.b + ' — Stand ' + D.s;
 
   var op = haalTerug();
+  /* Een link mag aantallen meebrengen. Dat is handig om een halve telling door
+     te sturen, en om een proef te doen zonder alles opnieuw in te tikken. Wat
+     op de telefoon zelf bewaard is wint: dat is nieuwer dan de link. */
+  if (D.t && !op){
+    Object.keys(D.t).forEach(function(k){ WAARDEN[k] = String(D.t[k]); });
+    bewaar();
+  }
   teken();
   if (op){
     var el = document.createElement('div');
