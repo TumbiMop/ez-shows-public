@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<title>Telvel</title>
+<title>Stand Count</title>
 <style>
   /* Deze pagina staat leeg op het web. Alles wat over een show gaat — artiest,
      zaal, artikelen, aantallen — komt uit het stuk achter de # in de link, en
@@ -104,7 +104,7 @@
 
 <script>
 /* ===========================================================================
-   Telvel — de pagina die een standteller op zijn telefoon opent.
+   Stand Count — de pagina die een standteller op zijn telefoon opent.
 
    Waarom dit bestand bestaat: een .html-bijlage opent op een iPhone niet als
    pagina. iOS geeft hem aan Quick Look en dat voert geen vreemde HTML uit, dus
@@ -153,7 +153,7 @@ function groepeer(rows){
 /* Bij elke toetsaanslag. Een lege accu of een verkeerde veeg mag geen avond
    tellen kosten. De sleutel hangt aan de show en de stand, zodat twee stands
    op dezelfde telefoon elkaar niet overschrijven. */
-function sleutel(){ return 'telvel.' + D.c + '.' + D.d + '.S' + D.s + '.' + D.m; }
+function sleutel(){ return 'standcount.' + D.c + '.' + D.d + '.S' + D.s + '.' + D.m; }
 function bewaar(){
   try { localStorage.setItem(sleutel(), JSON.stringify({ v:WAARDEN, t:TELLER, op:Date.now() })); }
   catch (e){}

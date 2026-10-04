@@ -18,7 +18,7 @@ Twijfel je? Dan hoort het er niet in.
 
 Achter de `#` van de link. Een browser stuurt dat stuk **nooit** naar de server
 waar de pagina staat — het blijft tussen de twee telefoons die het bericht
-delen. GitHub ziet alleen dat er iemand `telvel/` heeft opgehaald, nooit welke
+delen. GitHub ziet alleen dat er iemand `standcount/` heeft opgehaald, nooit welke
 show.
 
 Daarom staat er in dit bestand nergens iets over een show, en hoort dat zo te
@@ -28,12 +28,12 @@ blijven.
 
 | Map | Wat het is |
 |---|---|
-| `telvel/` | Het telvel voor een standteller. Opent met één tik vanuit WhatsApp, ook op een iPhone — waar een `.html`-bijlage juist niet opengaat. |
+| `standcount/` | **Stand Count** — het telvel voor een standteller. Opent met één tik vanuit WhatsApp, ook op een iPhone — waar een `.html`-bijlage juist niet opengaat. |
 
 ## Waar de bron staat
 
-Niet hier. De bron van `telvel/index.html` is
-`02-werk/tumbi/web/telvel.html`, in de privé-repo, naast de tool die de links
+Niet hier. De bron van `standcount/index.html` is
+`02-werk/tumbi/web/standcount.html`, in de privé-repo, naast de tool die de links
 maakt. Deze repo is alleen de etalage.
 
 Bijwerken gaat met één opdracht, vanuit de tumbi-map:
