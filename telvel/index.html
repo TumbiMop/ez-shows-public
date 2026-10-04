@@ -363,6 +363,19 @@ function balkBij(){
 /* ---- starten ------------------------------------------------------------ */
 (function(){
   D = uitHash();
+
+  /* Twee heel verschillende dingen, en ze verdienen niet hetzelfde antwoord.
+     Het kale adres openen is geen fout: deze pagina hoort leeg te zijn. Pas als
+     er wél iets achter de # staat maar het niet te lezen is, is er een link
+     onderweg stukgegaan. */
+  if (D === 'leeg'){
+    document.getElementById('app').innerHTML =
+      '<div class="stuk"><h1>Deze pagina is leeg</h1>'
+      + '<p>Dat hoort zo. Hier staat niets over een show — die komt mee in de '
+      + 'link die je per WhatsApp krijgt.</p>'
+      + '<p style="margin-top:18px">Open de link uit het bericht, niet dit adres.</p></div>';
+    return;
+  }
   if (!D || !D.r || !D.r.length){
     document.getElementById('app').innerHTML =
       '<div class="stuk"><h1>Deze link is niet compleet</h1>'
