@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Telvel</title>
+<style>
+  /* Deze pagina staat leeg op het web. Alles wat over een show gaat — artiest,
+     zaal, artikelen, aantallen — komt uit het stuk achter de # in de link, en
+     dat stuk stuurt een browser nooit naar de server. Er staat hier dus nooit
+     iets van een klant op een vreemde schijf. */
+  :root{
+    --inkt:#14140f; --zacht:#5d5b53; --flauw:#8d8a80;
+    --lijn:#dcd9cf; --grond:#faf9f5; --vlak:#ffffff;
+    --accent:#0b57d0; --goed:#1a7f4b; --let:#b3261e;
+    --raak:56px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-thema="licht"]){
+      --inkt:#f2f1ec; --zacht:#b9b6ab; --flauw:#7d7a71;
+      --lijn:#2f2f33; --grond:#121214; --vlak:#1a1a1e;
+      --accent:#7da2ff; --goed:#55c98a; --let:#ff8a80;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--grond); color:var(--inkt);
+    font-family:-apple-system,"Helvetica Neue",Helvetica,sans-serif;
+    font-size:17px; line-height:1.4; -webkit-text-size-adjust:100%;
+  }
+  button,input{font-family:inherit; -webkit-tap-highlight-color:transparent}
+
+  .scherm{ max-width:520px; margin:0 auto; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; }
+
+  /* ---- kop ---- */
+  .kop{ padding:14px 18px 10px; border-bottom:1px solid var(--lijn); background:var(--vlak); }
+  .kop .titel{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+  .band{ font-size:19px; font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .stand{ font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--zacht); flex:0 0 auto; }
+  .plaats{ font-size:12.5px; color:var(--zacht); margin-top:2px; }
+  .balk{ height:5px; background:var(--lijn); border-radius:3px; margin-top:11px; overflow:hidden; }
+  .balk i{ display:block; height:5px; width:0; background:var(--accent); transition:width .2s; }
+  .vorder{ font-size:12px; color:var(--zacht); margin-top:6px; }
+
+  /* ---- midden ---- */
+  .midden{ flex:1 1 auto; padding:18px; }
+  h1{ font-size:25px; line-height:1.15; margin:0 0 3px; font-weight:800; text-wrap:balance; }
+  .onder{ font-size:13.5px; color:var(--zacht); margin:0 0 18px; }
+
+  .regel{ display:flex; align-items:center; gap:12px; padding:9px 0;
+    border-bottom:1px solid var(--lijn); }
+  .regel:last-child{ border-bottom:0 }
+  .maat{ flex:1 1 auto; min-width:0; font-size:19px; font-weight:800; }
+  .maat small{ display:block; font-size:12px; font-weight:400; color:var(--zacht); margin-top:1px; }
+  /* 16px of groter: daaronder zoomt iOS het veld bij het aantikken in en
+     verspringt de hele pagina. */
+  .vak{ width:96px; flex:0 0 auto; height:var(--raak); text-align:center;
+    font-size:21px; font-weight:700; border:2px solid var(--lijn); border-radius:12px;
+    background:var(--vlak); color:var(--inkt); }
+  .vak:focus{ outline:none; border-color:var(--accent); }
+  .vak.af{ border-color:var(--goed); }
+  /* "geen" in plaats van een cijfer 0 op de knop: een 0 naast een leeg vakje
+     ziet eruit als een waarde die er al staat, en dan slaat iemand de regel over
+     in de veronderstelling dat hij al geteld is. */
+  .nul{ flex:0 0 auto; height:var(--raak); min-width:64px; padding:0 12px; border-radius:12px;
+    border:2px dashed var(--lijn); background:transparent; color:var(--zacht);
+    font-size:14.5px; font-weight:600; }
+  .nul:active{ border-style:solid; color:var(--inkt); }
+
+  /* ---- voet ---- */
+  .voet{ flex:0 0 auto; padding:12px 18px calc(16px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--lijn); background:var(--vlak);
+    display:flex; gap:10px; }
+  .knop{ flex:1 1 auto; min-height:var(--raak); border:0; border-radius:14px;
+    font-size:17px; font-weight:700; background:var(--accent); color:#fff; }
+  .knop.stil{ background:transparent; color:var(--accent); border:2px solid var(--lijn); flex:0 0 38%; }
+  .knop:disabled{ opacity:.45 }
+
+  /* ---- slot ---- */
+  .mist{ background:var(--vlak); border:2px solid var(--let); border-radius:14px;
+    padding:14px 16px; margin-bottom:18px; }
+  .mist b{ color:var(--let) }
+  .mist button{ display:block; width:100%; text-align:left; background:none; border:0;
+    border-top:1px solid var(--lijn); padding:11px 0; color:var(--accent);
+    font-size:16px; font-weight:600; min-height:var(--raak); }
+  .lijst{ margin:0 0 18px; }
+  .lijst .r{ display:flex; justify-content:space-between; gap:12px; padding:7px 0;
+    border-bottom:1px solid var(--lijn); font-size:15.5px; }
+  .lijst .r b{ font-variant-numeric:tabular-nums }
+  .lijst .r.anders b{ color:var(--let) }
+  .naam{ width:100%; height:var(--raak); font-size:17px; padding:0 14px; margin-bottom:16px;
+    border:2px solid var(--lijn); border-radius:12px; background:var(--vlak); color:var(--inkt); }
+  .bewaard{ font-size:12.5px; color:var(--goed); margin-top:10px; }
+  .stuk{ padding:40px 18px; text-align:center; color:var(--zacht); }
+</style>
+</head>
+<body>
+<div class="scherm" id="app"><div class="stuk">Even laden…</div></div>
+
+<script>
+/* ===========================================================================
+   Telvel — de pagina die een standteller op zijn telefoon opent.
+
+   Waarom dit bestand bestaat: een .html-bijlage opent op een iPhone niet als
+   pagina. iOS geeft hem aan Quick Look en dat voert geen vreemde HTML uit, dus
+   de teller moest eerst bewaren in Bestanden en dan openen in Safari. Een
+   https-link gaat wel gewoon open, met één tik, in WhatsApp zelf.
+
+   Deze pagina staat daarom leeg op het web en krijgt de show mee in de hash.
+   Een browser stuurt alles achter de # nooit naar de server — de artiest, de
+   zaal en de aantallen blijven dus tussen Eran en de teller.
+
+   De terugweg is onveranderd: dezelfde SFM1-coderegel die Tumbi al leest.
+   =========================================================================== */
+
+var D = null, ITEMS = [], STAP = 0, WAARDEN = {}, TELLER = '';
+
+/* ---- de link uitpakken -------------------------------------------------- */
+function uitHash(){
+  var h = String(location.hash || '').replace(/^#/, '');
+  if (!h) return null;
+  try {
+    var b64 = h.replace(/-/g, '+').replace(/_/g, '/');
+    while (b64.length % 4) b64 += '=';
+    var ruw = atob(b64);
+    /* atob geeft bytes; via escape/decodeURIComponent komen accenten goed terug. */
+    return JSON.parse(decodeURIComponent(escape(ruw)));
+  } catch (e){ return null; }
+}
+
+/* ---- de regels groeperen tot artikelen ---------------------------------- */
+/* Een artikel is een kopregel met zijn maten eronder, of een los artikel zonder
+   maten. Dat is de eenheid waarin iemand telt: je pakt een stapel shirts en
+   telt alle maten, niet één maat uit het midden van een lange lijst. */
+function groepeer(rows){
+  var uit = [], band = null, nu = null;
+  rows.forEach(function(r){
+    if (r.kind === 'band'){ band = r.name; nu = null; return; }
+    if (r.kind === 'h'){ nu = { naam:r.name, band:band, regels:[] }; uit.push(nu); return; }
+    if (r.kind === 's' && nu){ nu.regels.push(r); return; }
+    uit.push({ naam:r.name, band:band, regels:[r] });
+    nu = null;
+  });
+  return uit.filter(function(p){ return p.regels.length; });
+}
+
+/* ---- bewaren ------------------------------------------------------------ */
+/* Bij elke toetsaanslag. Een lege accu of een verkeerde veeg mag geen avond
+   tellen kosten. De sleutel hangt aan de show en de stand, zodat twee stands
+   op dezelfde telefoon elkaar niet overschrijven. */
+function sleutel(){ return 'telvel.' + D.c + '.' + D.d + '.S' + D.s + '.' + D.m; }
+function bewaar(){
+  try { localStorage.setItem(sleutel(), JSON.stringify({ v:WAARDEN, t:TELLER, op:Date.now() })); }
+  catch (e){}
+}
+function haalTerug(){
+  try {
+    var x = JSON.parse(localStorage.getItem(sleutel()) || 'null');
+    if (x && x.v){ WAARDEN = x.v; TELLER = x.t || ''; return x.op || 0; }
+  } catch (e){}
+  return 0;
+}
+
+/* ---- tellen ------------------------------------------------------------- */
+function alleRegels(){
+  var a = [];
+  ITEMS.forEach(function(p){ p.regels.forEach(function(r){ a.push(r); }); });
+  return a;
+}
+function gedaan(){
+  return alleRegels().filter(function(r){ return WAARDEN[r.no] !== undefined; }).length;
+}
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ---- de coderegel ------------------------------------------------------- */
+/* Letterlijk hetzelfde formaat als het oude telvel, zodat "Terug uit WhatsApp"
+   in Tumbi er niets van merkt. Niets aan veranderen zonder tlSlParse mee te
+   veranderen. */
+function code(){
+  var paren = [];
+  alleRegels().forEach(function(r){
+    var v = WAARDEN[r.no];
+    if (v !== undefined && v !== '') paren.push(r.no + ':' + v);
+  });
+  return 'SFM1|' + D.c + '|' + String(D.d).replace(/[^0-9]/g,'') + '|S' + D.s
+       + '|' + (D.m === 'in' ? 'IN' : 'FINAL') + '|' + (TELLER || '?') + '|' + paren.join(',');
+}
+function bericht(){
+  var kop = (D.m === 'in' ? 'In count' : 'Final count') + ' — Stand ' + D.s + ' (' + D.n + ')';
+  var regels = [kop, D.b + ' · ' + D.v + ' · ' + D.d, 'Geteld door: ' + (TELLER || '?'), ''];
+  ITEMS.forEach(function(p){
+    var stukken = [];
+    p.regels.forEach(function(r){
+      var v = WAARDEN[r.no];
+      if (v === undefined || v === '') return;
+      stukken.push((p.regels.length > 1 ? r.name + ' ' : '') + v);
+    });
+    if (stukken.length) regels.push(p.naam + ': ' + stukken.join(', '));
+  });
+  regels.push('');
+  regels.push(code());
+  return regels.join('\n');
+}
+
+/* ---- tekenen ------------------------------------------------------------ */
+function teken(){
+  var app = document.getElementById('app');
+  var totaal = alleRegels().length, af = gedaan();
+  var pct = totaal ? Math.round(af / totaal * 100) : 0;
+
+  var kop = '<div class="kop"><div class="titel">'
+    + '<div class="band">' + esc(D.b) + '</div>'
+    + '<div class="stand">Stand ' + esc(D.s) + '</div></div>'
+    + '<div class="plaats">' + esc(D.v) + (D.d ? ' · ' + esc(D.d) : '')
+    + ' · ' + (D.m === 'in' ? 'In count' : 'Final count') + '</div>'
+    + '<div class="balk"><i style="width:' + pct + '%"></i></div>'
+    + '<div class="vorder">' + af + ' van ' + totaal + ' regels geteld</div></div>';
+
+  if (STAP >= ITEMS.length){ app.innerHTML = kop + slot(); naSlot(); return; }
+
+  var p = ITEMS[STAP];
+  var h = kop + '<div class="midden">'
+    + (p.band ? '<p class="onder" style="margin-bottom:4px">' + esc(p.band) + '</p>' : '')
+    + '<h1>' + esc(p.naam) + '</h1>'
+    + '<p class="onder">Artikel ' + (STAP + 1) + ' van ' + ITEMS.length
+    + (p.regels.length > 1 ? ' · ' + p.regels.length + ' maten' : '') + '</p>';
+
+  p.regels.forEach(function(r){
+    var v = WAARDEN[r.no];
+    var heeft = v !== undefined && v !== '';
+    h += '<div class="regel">'
+      +  '<div class="maat">' + esc(p.regels.length > 1 ? r.name : 'Aantal')
+      +  (D.m === 'in' && r.in ? '<small>volgens de lijst ' + r.in + '</small>' : '')
+      +  '</div>'
+      +  '<input class="vak' + (heeft ? ' af' : '') + '" type="text" inputmode="numeric"'
+      +  ' pattern="[0-9]*" maxlength="4" data-no="' + r.no + '"'
+      +  ' value="' + (heeft ? esc(v) : '') + '" placeholder="–"'
+      +  ' aria-label="Aantal ' + esc(p.regels.length > 1 ? r.name : p.naam) + '">'
+      +  '<button type="button" class="nul" data-nul="' + r.no + '">geen</button>'
+      +  '</div>';
+  });
+
+  h += '</div><div class="voet">'
+    + '<button type="button" class="knop stil" id="terug"' + (STAP === 0 ? ' disabled' : '') + '>Vorige</button>'
+    + '<button type="button" class="knop" id="verder">' + (STAP === ITEMS.length - 1 ? 'Naar het slot' : 'Volgende') + '</button>'
+    + '</div>';
+
+  app.innerHTML = h;
+  koppel();
+}
+
+function slot(){
+  var open = [];
+  ITEMS.forEach(function(p){
+    p.regels.forEach(function(r){
+      if (WAARDEN[r.no] === undefined || WAARDEN[r.no] === '')
+        open.push({ p:p, r:r });
+    });
+  });
+
+  var h = '<div class="midden"><h1>Nakijken en versturen</h1>';
+
+  if (open.length){
+    h += '<div class="mist"><b>' + open.length + ' regel' + (open.length === 1 ? '' : 's')
+      +  ' nog niet geteld.</b><p style="margin:4px 0 0;font-size:14px;color:var(--zacht)">'
+      +  'Een leeg vakje is dubbelzinnig: is het nul, of overgeslagen? Vul ook de nullen in.</p>';
+    open.slice(0, 8).forEach(function(o){
+      var i = ITEMS.indexOf(o.p);
+      h += '<button type="button" data-ga="' + i + '">' + esc(o.p.naam)
+        +  (o.p.regels.length > 1 ? ' — ' + esc(o.r.name) : '') + ' →</button>';
+    });
+    if (open.length > 8) h += '<p style="margin:10px 0 0;font-size:13px;color:var(--zacht)">en nog '
+      + (open.length - 8) + '</p>';
+    h += '</div>';
+  }
+
+  h += '<div class="lijst">';
+  var som = 0;
+  ITEMS.forEach(function(p){
+    p.regels.forEach(function(r){
+      var v = WAARDEN[r.no];
+      if (v === undefined || v === '') return;
+      som += parseInt(v, 10) || 0;
+      var anders = (D.m === 'in' && r.in != null && parseInt(v,10) !== r.in);
+      h += '<div class="r' + (anders ? ' anders' : '') + '"><span>' + esc(p.naam)
+        +  (p.regels.length > 1 ? ' · ' + esc(r.name) : '') + '</span><b>' + esc(v)
+        +  (anders ? ' (lijst ' + r.in + ')' : '') + '</b></div>';
+    });
+  });
+  h += '<div class="r"><span><b>Totaal stuks</b></span><b>' + som + '</b></div></div>';
+
+  h += '<input class="naam" id="teller" placeholder="Je naam" value="' + esc(TELLER) + '">'
+    +  '</div><div class="voet">'
+    +  '<button type="button" class="knop stil" id="terug">Vorige</button>'
+    +  '<button type="button" class="knop" id="stuur">Versturen</button>'
+    +  '</div>';
+  return h;
+}
+
+/* ---- knopen leggen ------------------------------------------------------ */
+function koppel(){
+  var app = document.getElementById('app');
+
+  Array.prototype.forEach.call(app.querySelectorAll('.vak'), function(el){
+    el.addEventListener('input', function(){
+      var schoon = el.value.replace(/[^0-9]/g, '').slice(0, 4);
+      if (schoon !== el.value) el.value = schoon;
+      var no = +el.dataset.no;
+      if (schoon === '') delete WAARDEN[no]; else WAARDEN[no] = schoon;
+      el.classList.toggle('af', schoon !== '');
+      bewaar();
+      balkBij();
+    });
+  });
+
+  Array.prototype.forEach.call(app.querySelectorAll('[data-nul]'), function(el){
+    el.addEventListener('click', function(){
+      var no = +el.dataset.nul;
+      WAARDEN[no] = '0';
+      bewaar();
+      teken();
+    });
+  });
+
+  var v = document.getElementById('verder');
+  if (v) v.addEventListener('click', function(){ STAP++; window.scrollTo(0,0); teken(); });
+  var t = document.getElementById('terug');
+  if (t) t.addEventListener('click', function(){ if (STAP > 0) STAP--; window.scrollTo(0,0); teken(); });
+}
+
+function naSlot(){
+  var app = document.getElementById('app');
+  Array.prototype.forEach.call(app.querySelectorAll('[data-ga]'), function(el){
+    el.addEventListener('click', function(){ STAP = +el.dataset.ga; window.scrollTo(0,0); teken(); });
+  });
+  var n = document.getElementById('teller');
+  if (n) n.addEventListener('input', function(){ TELLER = n.value.trim(); bewaar(); });
+  var t = document.getElementById('terug');
+  if (t) t.addEventListener('click', function(){ STAP = ITEMS.length - 1; window.scrollTo(0,0); teken(); });
+  var s = document.getElementById('stuur');
+  if (s) s.addEventListener('click', function(){
+    var naar = D.w ? String(D.w).replace(/[^0-9]/g, '') : '';
+    window.location.href = 'https://wa.me/' + naar + '?text=' + encodeURIComponent(bericht());
+  });
+}
+
+function balkBij(){
+  var totaal = alleRegels().length, af = gedaan();
+  var i = document.querySelector('.balk i');
+  var p = document.querySelector('.vorder');
+  if (i) i.style.width = (totaal ? Math.round(af/totaal*100) : 0) + '%';
+  if (p) p.textContent = af + ' van ' + totaal + ' regels geteld';
+}
+
+/* ---- starten ------------------------------------------------------------ */
+(function(){
+  D = uitHash();
+  if (!D || !D.r || !D.r.length){
+    document.getElementById('app').innerHTML =
+      '<div class="stuk"><h1>Deze link is niet compleet</h1>'
+      + '<p>Vraag of hij nog een keer gestuurd wordt. Kopieer hem helemaal '
+      + '— een link die halverwege is afgeknipt doet het niet.</p></div>';
+    return;
+  }
+  D.r = D.r.map(function(a){ return { no:a[0], name:a[1], kind:a[2], in:a[3] }; });
+  ITEMS = groepeer(D.r);
+  document.title = D.b + ' — Stand ' + D.s;
+
+  var op = haalTerug();
+  teken();
+  if (op){
+    var el = document.createElement('div');
+    el.className = 'bewaard';
+    el.style.cssText = 'padding:0 18px 14px;color:var(--goed);font-size:13px';
+    el.textContent = 'Je eerdere telling van ' + new Date(op).toLocaleTimeString('nl-NL',
+      { hour:'2-digit', minute:'2-digit' }) + ' is teruggezet.';
+    var m = document.querySelector('.midden');
+    if (m) m.parentNode.insertBefore(el, m.nextSibling);
+  }
+})();
+</script>
+</body>
+</html>
