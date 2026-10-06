@@ -14,7 +14,7 @@
     --inkt:#14140f; --zacht:#5d5b53; --flauw:#8d8a80;
     --lijn:#dcd9cf; --grond:#faf9f5; --vlak:#ffffff;
     --accent:#0b57d0; --goed:#1a7f4b; --let:#b3261e;
-    --raak:56px;
+    --raak:48px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-thema="licht"]){
@@ -37,44 +37,47 @@
     display:flex; flex-direction:column; }
 
   /* ---- kop ---- */
-  .kop{ padding:14px 18px 10px; border-bottom:1px solid var(--lijn); background:var(--vlak); }
+  /* Compacter dan eerst. Op een iPhone stond het toetsenbord over de vierde
+     maat heen; nu passen er vijf onder elkaar, zodat een shirt in één beeld
+     staat en je niet hoeft te scrollen terwijl je telt. */
+  .kop{ padding:9px 16px 7px; border-bottom:1px solid var(--lijn); background:var(--vlak); }
   .kop .titel{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-  .band{ font-size:19px; font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
+  .band{ font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .stand{ font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
     color:var(--zacht); flex:0 0 auto; }
-  .plaats{ font-size:12.5px; color:var(--zacht); margin-top:2px; }
-  .balk{ height:5px; background:var(--lijn); border-radius:3px; margin-top:11px; overflow:hidden; }
-  .balk i{ display:block; height:5px; width:0; background:var(--accent); transition:width .2s; }
-  .vorder{ font-size:12px; color:var(--zacht); margin-top:6px; }
+  .plaats{ font-size:11.5px; color:var(--zacht); margin-top:1px; }
+  .balk{ height:4px; background:var(--lijn); border-radius:2px; margin-top:7px; overflow:hidden; }
+  .balk i{ display:block; height:4px; width:0; background:var(--accent); transition:width .2s; }
+  .vorder{ font-size:11px; color:var(--zacht); margin-top:4px; }
 
   /* ---- midden ---- */
-  .midden{ flex:1 1 auto; padding:18px; }
-  h1{ font-size:25px; line-height:1.15; margin:0 0 3px; font-weight:800; text-wrap:balance; }
-  .onder{ font-size:13.5px; color:var(--zacht); margin:0 0 18px; }
+  .midden{ flex:1 1 auto; padding:12px 16px; }
+  h1{ font-size:21px; line-height:1.12; margin:0 0 2px; font-weight:800; text-wrap:balance; }
+  .onder{ font-size:12px; color:var(--zacht); margin:0 0 10px; }
 
-  .regel{ display:flex; align-items:center; gap:12px; padding:9px 0;
+  .regel{ display:flex; align-items:center; gap:10px; padding:4px 0;
     border-bottom:1px solid var(--lijn); }
   .regel:last-child{ border-bottom:0 }
-  .maat{ flex:1 1 auto; min-width:0; font-size:19px; font-weight:800; }
-  .maat small{ display:block; font-size:12px; font-weight:400; color:var(--zacht); margin-top:1px; }
+  .maat{ flex:1 1 auto; min-width:0; font-size:17px; font-weight:800; }
+  .maat small{ display:block; font-size:11px; font-weight:400; color:var(--zacht); margin-top:0; }
   /* 16px of groter: daaronder zoomt iOS het veld bij het aantikken in en
      verspringt de hele pagina. */
-  .vak{ width:96px; flex:0 0 auto; height:var(--raak); text-align:center;
-    font-size:21px; font-weight:700; border:2px solid var(--lijn); border-radius:12px;
+  .vak{ width:88px; flex:0 0 auto; height:var(--raak); text-align:center;
+    font-size:19px; font-weight:700; border:2px solid var(--lijn); border-radius:11px;
     background:var(--vlak); color:var(--inkt); }
   .vak:focus{ outline:none; border-color:var(--accent); }
   .vak.af{ border-color:var(--goed); }
   /* "geen" in plaats van een cijfer 0 op de knop: een 0 naast een leeg vakje
      ziet eruit als een waarde die er al staat, en dan slaat iemand de regel over
      in de veronderstelling dat hij al geteld is. */
-  .nul{ flex:0 0 auto; height:var(--raak); min-width:64px; padding:0 12px; border-radius:12px;
+  .nul{ flex:0 0 auto; height:var(--raak); min-width:56px; padding:0 10px; border-radius:11px;
     border:2px dashed var(--lijn); background:transparent; color:var(--zacht);
     font-size:14.5px; font-weight:600; }
   .nul:active{ border-style:solid; color:var(--inkt); }
 
   /* ---- voet ---- */
-  .voet{ flex:0 0 auto; padding:12px 18px calc(16px + env(safe-area-inset-bottom));
+  .voet{ flex:0 0 auto; padding:9px 16px calc(12px + env(safe-area-inset-bottom));
     border-top:1px solid var(--lijn); background:var(--vlak);
     display:flex; gap:10px; }
   .knop{ flex:1 1 auto; min-height:var(--raak); border:0; border-radius:14px;
@@ -98,10 +101,44 @@
     border:2px solid var(--lijn); border-radius:12px; background:var(--vlak); color:var(--inkt); }
   .bewaard{ font-size:12.5px; color:var(--goed); margin-top:10px; }
   .stuk{ padding:40px 18px; text-align:center; color:var(--zacht); }
+
+  /* ---- De balk boven het toetsenbord --------------------------------------
+     Op Android heeft het cijferklavier een pijl naar het volgende veld. Op een
+     iPhone niet: daar is het tien toetsen en een backspace, en er verschijnt
+     ook geen balkje met pijltjes — nagekeken op een echte telefoon. Dus bouwen
+     we hem zelf, boven het toetsenbord.
+
+     Hij staat er alleen als je in een vakje typt, en houdt "volgend artikel"
+     binnen duimbereik zodat je er niet voor hoeft te scrollen. De plek komt van
+     visualViewport: dat is het enige wat weet hoe hoog het toetsenbord nu is. */
+  .klavierbalk{ position:fixed; left:0; right:0; top:0; z-index:40;
+    display:none; gap:7px; align-items:center;
+    padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+    background:var(--vlak); border-top:1px solid var(--lijn);
+    box-shadow:0 -6px 18px rgba(0,0,0,.22); }
+  .klavierbalk.aan{ display:flex; }
+  /* Zolang de balk er staat is de onderbalk overbodig: hij doet hetzelfde en
+     zou er doorheen schemeren. */
+  body.typt .voet{ visibility:hidden; }
+  .klavierbalk button{ min-height:40px; border-radius:10px; border:1px solid var(--lijn);
+    background:transparent; color:var(--inkt); font-size:17px; font-weight:700;
+    padding:0 15px; flex:0 0 auto; }
+  .klavierbalk button:disabled{ opacity:.3; }
+  .klavierbalk .waar{ flex:1 1 auto; min-width:0; font-size:12px; color:var(--zacht);
+    text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .klavierbalk .door{ border-color:transparent; background:var(--accent); color:#fff;
+    font-size:14.5px; }
 </style>
 </head>
 <body>
 <div class="scherm" id="app"><div class="stuk">Even laden…</div></div>
+
+<div class="klavierbalk" id="klavierbalk">
+  <button type="button" id="kb-vorige" aria-label="Vorige maat">&lsaquo;</button>
+  <button type="button" id="kb-volgende" aria-label="Volgende maat">&rsaquo;</button>
+  <span class="waar" id="kb-waar"></span>
+  <button type="button" class="door" id="kb-door">Volgend artikel</button>
+</div>
 
 <script>
 /* ===========================================================================
@@ -364,6 +401,17 @@ function koppel(){
        naar het volgende veld. Op de laatste maat van een artikel is er niets
        meer om heen te springen — dan hoort hij door te gaan naar het volgende
        artikel, want dat is wat je op dat moment wilt. */
+    /* De balk verschijnt zodra je in een vakje staat en verdwijnt als je er
+       weer uit bent — met een korte pauze, want tussen twee velden door is de
+       focus even nergens. */
+    el.addEventListener('focus', function(){ KB.veld = el; kbBij(); });
+    el.addEventListener('blur', function(){
+      setTimeout(function(){
+        if (document.activeElement && document.activeElement.classList
+            && document.activeElement.classList.contains('vak')) return;
+        KB.veld = null; kbPlaats();
+      }, 120);
+    });
     el.addEventListener('keydown', function(e){
       if (e.key !== 'Enter') return;
       e.preventDefault();
@@ -412,6 +460,75 @@ function naSlot(){
     window.location.href = 'https://wa.me/' + naar + '?text=' + encodeURIComponent(bericht());
   });
 }
+
+/* ---- De balk boven het toetsenbord ------------------------------------- */
+var KB = { veld: null };
+
+function kbPlaats(){
+  var balk = document.getElementById('klavierbalk');
+  if (!balk) return;
+  if (!KB.veld){
+    balk.classList.remove('aan');
+    document.body.classList.remove('typt');
+    return;
+  }
+  balk.classList.add('aan');
+  document.body.classList.add('typt');
+  /* visualViewport weet als enige hoe hoog het toetsenbord nu is. Zonder dat
+     staat de balk eronder en zie je hem niet. */
+  var vv = window.visualViewport;
+  var onder = vv ? (vv.height + vv.offsetTop) : window.innerHeight;
+  /* Nooit lager dan de onderkant van het venster zelf. Zonder deze grens kan
+     visualViewport een hoogte opgeven die buiten beeld valt en staat de balk
+     ergens onder de vouw — precies het probleem dat hij moest oplossen. */
+  onder = Math.min(onder, window.innerHeight);
+  balk.style.transform = 'translateY(' + Math.max(0, onder - balk.offsetHeight) + 'px)';
+}
+
+function kbSpring(richting){
+  var velden = Array.prototype.slice.call(document.querySelectorAll('.vak'));
+  var i = velden.indexOf(KB.veld);
+  if (i < 0) return;
+  var j = i + richting;
+  if (j < 0 || j >= velden.length) return;
+  velden[j].focus();
+  velden[j].select();
+}
+
+function kbBij(){
+  var velden = Array.prototype.slice.call(document.querySelectorAll('.vak'));
+  var i = velden.indexOf(KB.veld);
+  var waar = document.getElementById('kb-waar');
+  var v = document.getElementById('kb-vorige');
+  var n = document.getElementById('kb-volgende');
+  if (v) v.disabled = (i <= 0);
+  if (n) n.disabled = (i < 0 || i >= velden.length - 1);
+  if (waar && i >= 0){
+    var p = ITEMS[STAP];
+    waar.textContent = (p && p.regels.length > 1)
+      ? p.regels[i].name + ' · maat ' + (i + 1) + ' van ' + velden.length
+      : (p ? p.naam : '');
+  }
+  kbPlaats();
+}
+
+(function(){
+  var balk = document.getElementById('klavierbalk');
+  if (!balk) return;
+  /* Niet op mousedown de focus laten wegvallen — anders klapt het toetsenbord
+     dicht op het moment dat je de knop aanraakt. */
+  balk.addEventListener('mousedown', function(e){ e.preventDefault(); });
+  balk.addEventListener('touchstart', function(e){ e.preventDefault(); }, { passive:false });
+  var k = function(id, fn){ var el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+  k('kb-vorige', function(){ kbSpring(-1); });
+  k('kb-volgende', function(){ kbSpring(1); });
+  k('kb-door', function(){ var d = document.getElementById('verder'); if (d) d.click(); });
+  if (window.visualViewport){
+    window.visualViewport.addEventListener('resize', kbPlaats);
+    window.visualViewport.addEventListener('scroll', kbPlaats);
+  }
+  window.addEventListener('resize', kbPlaats);
+})();
 
 function balkBij(){
   var totaal = alleRegels().length, af = gedaan();
