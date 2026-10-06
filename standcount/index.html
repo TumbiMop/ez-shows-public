@@ -76,6 +76,14 @@
     font-size:14.5px; font-weight:600; }
   .nul:active{ border-style:solid; color:var(--inkt); }
 
+  /* Een artikel waar niets meer van ligt: alle maten op 0 en door. Scheelt bij
+     een uitverkocht shirt vijf keer tikken. Hij staat bewust stil en smal —
+     hij wist wat je hebt ingevuld, dus hij mag niet uitnodigen. */
+  .uitverkocht{ width:100%; min-height:var(--raak); margin-top:12px; border-radius:12px;
+    border:1px dashed var(--lijn); background:transparent; color:var(--zacht);
+    font-size:14.5px; font-weight:600; }
+  .uitverkocht.zeker{ border-style:solid; border-color:var(--let); color:var(--let); }
+
   /* ---- voet ---- */
   .voet{ flex:0 0 auto; padding:9px 16px calc(12px + env(safe-area-inset-bottom));
     border-top:1px solid var(--lijn); background:var(--vlak);
@@ -334,6 +342,8 @@ function teken(){
   /* "Volgende" stond op deze knop én op de toets van het Android-klavier, en
      die doen iets anders: de toets gaat naar de volgende maat, de knop naar het
      volgende artikel. Vandaar de naam erbij. */
+  h += '<button type="button" class="uitverkocht" id="uitverkocht">Alles uitverkocht</button>';
+
   h += '</form><div class="voet">'
     + '<button type="button" class="knop stil" id="terug"' + (STAP === 0 ? ' disabled' : '') + '>Vorig artikel</button>'
     + '<button type="button" class="knop" id="verder">' + (STAP === ITEMS.length - 1 ? 'Naar het slot' : 'Volgend artikel') + '</button>'
@@ -404,7 +414,17 @@ function koppel(){
     /* De balk verschijnt zodra je in een vakje staat en verdwijnt als je er
        weer uit bent — met een korte pauze, want tussen twee velden door is de
        focus even nergens. */
-    el.addEventListener('focus', function(){ KB.veld = el; kbBij(); });
+    /* Alles selecteren zodra je in een vakje komt. Staat er al een 0 en typ je
+       een 7, dan hoort er 7 te staan en niet 07 — je overschrijft wat er stond,
+       je vult het niet aan. Dat is wat een teller verwacht als hij een vakje
+       aantikt om het te verbeteren. */
+    el.addEventListener('focus', function(){
+      KB.veld = el;
+      el.dataset.vers = '1';
+      el.dataset.oud = el.value;
+      setTimeout(function(){ try { el.select(); } catch(_){} }, 0);
+      kbBij();
+    });
     el.addEventListener('blur', function(){
       setTimeout(function(){
         if (document.activeElement && document.activeElement.classList
@@ -420,6 +440,18 @@ function koppel(){
       if (v) v.click();
     });
     el.addEventListener('input', function(){
+      /* Vangnet onder het selecteren hierboven. Safari op iOS laat een select()
+         vlak na het aantikken wel eens lopen, en dan staat er alsnog 07. Is dit
+         de eerste aanslag na het aantikken en is de oude waarde er gewoon nog,
+         met wat nieuws eraan geplakt, dan houden we alleen het nieuwe over. */
+      if (el.dataset.vers === '1'){
+        var oud = el.dataset.oud || '';
+        if (oud && el.value.length > oud.length){
+          if (el.value.indexOf(oud) === 0) el.value = el.value.slice(oud.length);
+          else if (el.value.slice(-oud.length) === oud) el.value = el.value.slice(0, -oud.length);
+        }
+        el.dataset.vers = '';
+      }
       var schoon = el.value.replace(/[^0-9]/g, '').slice(0, 4);
       if (schoon !== el.value) el.value = schoon;
       var no = +el.dataset.no;
@@ -437,6 +469,29 @@ function koppel(){
       bewaar();
       teken();
     });
+  });
+
+  /* Uitverkocht: alle maten van dit artikel op 0 en door naar het volgende.
+     Staat er al iets ingevuld, dan vraagt hij eerst na — hij gooit immers weg
+     wat je net geteld hebt, en op een telefoon zit een misgetikte knop zo in je
+     duim. Geen systeemvenster: een tweede tik op dezelfde knop. */
+  var u = document.getElementById('uitverkocht');
+  if (u) u.addEventListener('click', function(){
+    var p = ITEMS[STAP];
+    if (!p) return;
+    var ingevuld = p.regels.some(function(r){
+      return WAARDEN[r.no] !== undefined && WAARDEN[r.no] !== '' && WAARDEN[r.no] !== '0';
+    });
+    if (ingevuld && !u.classList.contains('zeker')){
+      u.classList.add('zeker');
+      u.textContent = 'Zeker weten? Tik nog eens — alles wordt 0';
+      return;
+    }
+    p.regels.forEach(function(r){ WAARDEN[r.no] = '0'; });
+    bewaar();
+    STAP++;
+    window.scrollTo(0,0);
+    teken();
   });
 
   var v = document.getElementById('verder');
@@ -515,11 +570,30 @@ function kbBij(){
 (function(){
   var balk = document.getElementById('klavierbalk');
   if (!balk) return;
-  /* Niet op mousedown de focus laten wegvallen — anders klapt het toetsenbord
-     dicht op het moment dat je de knop aanraakt. */
-  balk.addEventListener('mousedown', function(e){ e.preventDefault(); });
-  balk.addEventListener('touchstart', function(e){ e.preventDefault(); }, { passive:false });
-  var k = function(id, fn){ var el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+  /* De knoppen luisteren naar pointerdown en niet naar click, en dat is geen
+     stijlkwestie.
+
+     De balk moet de focus vasthouden: valt die weg, dan klapt het toetsenbord
+     dicht en springt de balk met het toetsenbord mee naar beneden, nog voordat
+     je vinger los is. Daarvoor is een preventDefault nodig. Maar een
+     preventDefault op touchstart blaast op een iPhone de hele aanraking af — er
+     komt dan geen click meer achteraan, en de knop doet niets. Precies wat er
+     op Sanneke's telefoon gebeurde: de balk stond er, de knoppen waren dood.
+
+     Dus doen we het werk op het moment van aanraken zelf. Eén weg voor beide
+     telefoons, en de focus blijft staan. */
+  var k = function(id, fn){
+    var el = document.getElementById(id);
+    if (!el) return;
+    var raak = function(e){
+      if (el.disabled) { e.preventDefault(); return; }
+      e.preventDefault();   /* houdt de focus, en dus het toetsenbord, waar hij is */
+      fn();
+    };
+    if (window.PointerEvent) el.addEventListener('pointerdown', raak);
+    else { el.addEventListener('touchstart', raak, { passive:false });
+           el.addEventListener('mousedown', raak); }
+  };
   k('kb-vorige', function(){ kbSpring(-1); });
   k('kb-volgende', function(){ kbSpring(1); });
   k('kb-door', function(){ var d = document.getElementById('verder'); if (d) d.click(); });
