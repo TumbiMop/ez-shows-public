@@ -25,6 +25,7 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
+  form{margin:0}
   body{
     background:var(--grond); color:var(--inkt);
     font-family:-apple-system,"Helvetica Neue",Helvetica,sans-serif;
@@ -357,7 +358,19 @@ function slot(){
 function koppel(){
   var app = document.getElementById('app');
 
-  Array.prototype.forEach.call(app.querySelectorAll('.vak'), function(el){
+  var velden = app.querySelectorAll('.vak');
+  Array.prototype.forEach.call(velden, function(el, i){
+    /* Op Android heet de toets rechtsonder "volgende" en springt hij vanzelf
+       naar het volgende veld. Op de laatste maat van een artikel is er niets
+       meer om heen te springen — dan hoort hij door te gaan naar het volgende
+       artikel, want dat is wat je op dat moment wilt. */
+    el.addEventListener('keydown', function(e){
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      if (i < velden.length - 1){ velden[i + 1].focus(); velden[i + 1].select(); return; }
+      var v = document.getElementById('verder');
+      if (v) v.click();
+    });
     el.addEventListener('input', function(){
       var schoon = el.value.replace(/[^0-9]/g, '').slice(0, 4);
       if (schoon !== el.value) el.value = schoon;
