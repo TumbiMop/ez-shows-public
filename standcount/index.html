@@ -266,7 +266,13 @@ function teken(){
   if (STAP >= ITEMS.length){ app.innerHTML = kop + slot(); naSlot(); return; }
 
   var p = ITEMS[STAP];
-  var h = kop + '<div class="midden">'
+  /* De invulvelden staan in een <form>. Dat is niet om iets te versturen — het
+     is wat iOS nodig heeft om boven het toetsenbord het balkje met ‹ › en
+     Gereed te tonen, waarmee je van maat naar maat springt. Op het
+     cijferklavier van een iPhone zit geen Volgende-toets en die valt er ook
+     niet bij te maken; dit balkje is de enige weg die Apple biedt.
+     Op Android verandert er niets: daar heeft het klavier zijn eigen Volgende. */
+  var h = kop + '<form class="midden" onsubmit="return false">'
     + (p.band ? '<p class="onder" style="margin-bottom:4px">' + esc(p.band) + '</p>' : '')
     + '<h1>' + esc(p.naam) + '</h1>'
     + '<p class="onder">Artikel ' + (STAP + 1) + ' van ' + ITEMS.length
@@ -280,16 +286,19 @@ function teken(){
       +  (D.m === 'in' && r.in ? '<small>volgens de lijst ' + r.in + '</small>' : '')
       +  '</div>'
       +  '<input class="vak' + (heeft ? ' af' : '') + '" type="text" inputmode="numeric"'
-      +  ' pattern="[0-9]*" maxlength="4" data-no="' + r.no + '"'
+      +  ' enterkeyhint="next" autocomplete="off" pattern="[0-9]*" maxlength="4" data-no="' + r.no + '"'
       +  ' value="' + (heeft ? esc(v) : '') + '" placeholder="–"'
       +  ' aria-label="Aantal ' + esc(p.regels.length > 1 ? r.name : p.naam) + '">'
       +  '<button type="button" class="nul" data-nul="' + r.no + '">geen</button>'
       +  '</div>';
   });
 
-  h += '</div><div class="voet">'
-    + '<button type="button" class="knop stil" id="terug"' + (STAP === 0 ? ' disabled' : '') + '>Vorige</button>'
-    + '<button type="button" class="knop" id="verder">' + (STAP === ITEMS.length - 1 ? 'Naar het slot' : 'Volgende') + '</button>'
+  /* "Volgende" stond op deze knop én op de toets van het Android-klavier, en
+     die doen iets anders: de toets gaat naar de volgende maat, de knop naar het
+     volgende artikel. Vandaar de naam erbij. */
+  h += '</form><div class="voet">'
+    + '<button type="button" class="knop stil" id="terug"' + (STAP === 0 ? ' disabled' : '') + '>Vorig artikel</button>'
+    + '<button type="button" class="knop" id="verder">' + (STAP === ITEMS.length - 1 ? 'Naar het slot' : 'Volgend artikel') + '</button>'
     + '</div>';
 
   app.innerHTML = h;
