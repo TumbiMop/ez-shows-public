@@ -13,14 +13,16 @@
   :root{
     --inkt:#14140f; --zacht:#5d5b53; --flauw:#8d8a80;
     --lijn:#dcd9cf; --grond:#faf9f5; --vlak:#ffffff;
-    --accent:#0b57d0; --goed:#1a7f4b; --let:#b3261e;
+    --accent:#0b57d0; --opaccent:#ffffff; --goed:#166b40; --let:#b3261e;
+    --toets:#ffffff; --toetsrand:#d2cec2; --toetsdruk:#e8e4d8;
     --raak:48px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-thema="licht"]){
       --inkt:#f2f1ec; --zacht:#b9b6ab; --flauw:#7d7a71;
       --lijn:#2f2f33; --grond:#121214; --vlak:#1a1a1e;
-      --accent:#7da2ff; --goed:#55c98a; --let:#ff8a80;
+      --accent:#8fb0ff; --opaccent:#101320; --goed:#5fd196; --let:#ff8a80;
+      --toets:#26262c; --toetsrand:#35353d; --toetsdruk:#3a3a44;
     }
   }
   *{box-sizing:border-box}
@@ -33,8 +35,12 @@
   }
   button,input{font-family:inherit; -webkit-tap-highlight-color:transparent}
 
-  .scherm{ max-width:520px; margin:0 auto; min-height:100vh; min-height:100dvh;
-    display:flex; flex-direction:column; }
+  /* Een vaste hoogte, geen minimum. Met min-height groeit de lijst door de
+     onderkant heen en staat de voet met Versturen onder de vouw — dat was op
+     het nakijkscherm precies wat er gebeurde. Nu scrolt de lijst zelf en
+     blijven de kop, het klavier en de voet staan waar ze staan. */
+  .scherm{ max-width:520px; margin:0 auto; height:100vh; height:100dvh;
+    display:flex; flex-direction:column; overflow:hidden; }
 
   /* ---- kop ---- */
   /* Compacter dan eerst. Op een iPhone stond het toetsenbord over de vierde
@@ -51,102 +57,145 @@
   .balk i{ display:block; height:4px; width:0; background:var(--accent); transition:width .2s; }
   .vorder{ font-size:11px; color:var(--zacht); margin-top:4px; }
 
-  /* ---- midden ---- */
-  .midden{ flex:1 1 auto; padding:12px 16px; }
-  h1{ font-size:21px; line-height:1.12; margin:0 0 2px; font-weight:800; text-wrap:balance; }
-  .onder{ font-size:12px; color:var(--zacht); margin:0 0 10px; }
+  /* ---- het artikel en zijn maten ----------------------------------------
+     De lijst is een kolom met het klavier eronder. "Alles uitverkocht" hangt
+     met margin-top:auto onderaan, zodat die knop altijd op dezelfde plek staat
+     — of een artikel nu één maat heeft of zes. Dat is wat een duim onthoudt. */
+  .midden{ flex:1 1 auto; padding:11px 16px 0; overflow-y:auto;
+    overscroll-behavior:contain; display:flex; flex-direction:column; }
+  .midden::-webkit-scrollbar{ width:4px; }
+  .midden::-webkit-scrollbar-thumb{ background:var(--lijn); border-radius:2px; }
 
-  .regel{ display:flex; align-items:center; gap:10px; padding:4px 0;
-    border-bottom:1px solid var(--lijn); }
-  .regel:last-child{ border-bottom:0 }
-  .maat{ flex:1 1 auto; min-width:0; font-size:17px; font-weight:800; }
-  .maat small{ display:block; font-size:11px; font-weight:400; color:var(--zacht); margin-top:0; }
-  /* 16px of groter: daaronder zoomt iOS het veld bij het aantikken in en
-     verspringt de hele pagina. */
-  .vak{ width:88px; flex:0 0 auto; height:var(--raak); text-align:center;
-    font-size:19px; font-weight:700; border:2px solid var(--lijn); border-radius:11px;
-    background:var(--vlak); color:var(--inkt); }
-  .vak:focus{ outline:none; border-color:var(--accent); }
-  .vak.af{ border-color:var(--goed); }
-  /* "geen" in plaats van een cijfer 0 op de knop: een 0 naast een leeg vakje
-     ziet eruit als een waarde die er al staat, en dan slaat iemand de regel over
-     in de veronderstelling dat hij al geteld is. */
-  .nul{ flex:0 0 auto; height:var(--raak); min-width:56px; padding:0 10px; border-radius:11px;
-    border:2px dashed var(--lijn); background:transparent; color:var(--zacht);
-    font-size:14.5px; font-weight:600; }
-  .nul:active{ border-style:solid; color:var(--inkt); }
+  .artikel{ display:flex; align-items:center; justify-content:space-between;
+    gap:8px; margin:0 0 6px; }
+  .artikel .terug{ flex:0 0 auto; width:38px; height:38px; margin-left:-7px;
+    display:flex; align-items:center; justify-content:center;
+    border:0; border-radius:50%; background:transparent; color:var(--accent); }
+  .artikel .terug svg{ width:21px; height:21px; display:block; }
+  .artikel .terug:active{ background:var(--toetsdruk); }
+  .artikel .terug:disabled{ opacity:.25; }
+  .artikel h1{ flex:1 1 auto; min-width:0; font-size:22px; font-weight:800; letter-spacing:-.02em;
+    line-height:1.12; margin:0; }
+  .artikel .teller{ flex:0 0 auto; font-size:11.5px; font-weight:600; color:var(--zacht); }
+  .onder{ font-size:12px; color:var(--zacht); margin:0 0 9px; }
 
-  /* Een artikel waar niets meer van ligt: alle maten op 0 en door. Scheelt bij
-     een uitverkocht shirt vijf keer tikken. Hij staat bewust stil en smal —
-     hij wist wat je hebt ingevuld, dus hij mag niet uitnodigen. */
-  .uitverkocht{ width:100%; min-height:var(--raak); margin-top:12px; border-radius:12px;
-    border:1px dashed var(--lijn); background:transparent; color:var(--zacht);
-    font-size:14.5px; font-weight:600; }
-  .uitverkocht.zeker{ border-style:solid; border-color:var(--let); color:var(--let); }
+  .regel{ display:flex; align-items:center; gap:12px; width:100%;
+    padding:0 10px; margin:0 -10px; min-height:var(--raak); border:0;
+    background:transparent; color:inherit; font:inherit; text-align:left;
+    border-radius:10px; position:relative; }
+  .regel + .regel::before{ content:""; position:absolute; left:10px; right:10px;
+    top:0; height:1px; background:var(--lijn); }
+  .regel.hier{ background:color-mix(in srgb, var(--accent) 13%, transparent); }
+  .regel.hier::before, .regel.hier + .regel::before{ background:transparent; }
+  .maat{ flex:1 1 auto; min-width:0; font-size:17px; font-weight:700; }
+  .maat small{ display:block; font-size:11px; font-weight:400; color:var(--zacht); }
+  .regel.hier .maat{ color:var(--accent); }
+  .waarde{ flex:0 0 auto; min-width:76px; text-align:right; font-size:23px;
+    font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:-.01em; }
+  /* Een 0 is een waarde, een streepje is "nog niet geteld". Dat onderscheid is
+     het hele punt van dit scherm: een leeg vakje is dubbelzinnig. */
+  .waarde.leeg{ color:var(--flauw); font-weight:500; }
+  .waarde.af{ color:var(--goed); }
+  .regel.hier .waarde{ color:var(--inkt); }
+  .vink{ flex:0 0 auto; width:18px; height:18px; color:var(--goed); opacity:0; }
+  .vink.aan{ opacity:1; }
+  .regel.landt .waarde{ animation:landt .32s cubic-bezier(.16,1,.3,1); }
+  @keyframes landt{ from{ transform:translateY(-3px) scale(1.09); } to{ transform:none; } }
+  @media (prefers-reduced-motion:reduce){
+    .regel.landt .waarde{ animation:none; }
+    .balk i{ transition:none; }
+  }
 
-  /* ---- voet ---- */
-  .voet{ flex:0 0 auto; padding:9px 16px calc(12px + env(safe-area-inset-bottom));
-    border-top:1px solid var(--lijn); background:var(--vlak);
-    display:flex; gap:10px; }
-  .knop{ flex:1 1 auto; min-height:var(--raak); border:0; border-radius:14px;
-    font-size:17px; font-weight:700; background:var(--accent); color:#fff; }
-  .knop.stil{ background:transparent; color:var(--accent); border:2px solid var(--lijn); flex:0 0 38%; }
-  .knop:disabled{ opacity:.45 }
+  .uitverkocht{ display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%; min-height:46px; margin:14px 0 12px; margin-top:auto; flex:0 0 auto;
+    border-radius:11px; border:1px solid var(--lijn); background:transparent;
+    color:var(--zacht); font:inherit; font-size:14.5px; font-weight:600; }
+  .uitverkocht svg{ width:17px; height:17px; display:block; }
+  .vink svg{ width:18px; height:18px; display:block; }
+  .mist button svg{ width:16px; height:16px; display:inline-block; vertical-align:-2px; }
+  .uitverkocht:active{ background:var(--toetsdruk); }
+  .uitverkocht.zeker{ border-color:var(--let); color:var(--let); }
+
+  /* ---- het klavier -------------------------------------------------------
+     Vier kolommen: de hulptoetsen staan rechts in een eigen kolom, zodat er een
+     hele rij af kan. Dat scheelt ruim zeventig pixels en die gaan naar de lijst.
+
+     Dit klavier hoort bij de pagina, niet bij de telefoon. Daarom schuift er
+     niets meer: er is geen toetsenbord dat opkomt, geen balk die moet raden hoe
+     hoog dat ding staat, en geen invoerveld waar een getal uit kan verdwijnen. */
+  .klavier{ flex:0 0 auto; display:grid; gap:6px;
+    grid-template-columns:repeat(4,1fr); grid-template-rows:repeat(4,1fr);
+    padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+    background:var(--vlak); border-top:1px solid var(--lijn); }
+  .klavier button{ display:flex; align-items:center; justify-content:center; gap:7px;
+    height:50px; border-radius:11px; border:1px solid var(--toetsrand);
+    background:var(--toets); color:var(--inkt); font:inherit; font-size:25px;
+    font-weight:600; font-variant-numeric:tabular-nums;
+    transition:background .09s ease-out, transform .09s ease-out; }
+  .klavier button:active{ background:var(--toetsdruk); transform:scale(.97); }
+  .klavier button svg{ width:22px; height:22px; display:block; }
+  .klavier .hulp{ font-size:15px; font-weight:700; color:var(--zacht); }
+  .klavier .nul{ grid-column:span 3; }
+  .klavier .door{ grid-row:span 2; flex-direction:column; gap:3px;
+    background:var(--accent); border-color:transparent; color:var(--opaccent);
+    font-size:12.5px; font-weight:700; line-height:1.15; text-align:center; padding:0 4px; }
+  .klavier .door:active{ background:var(--accent); transform:scale(.97); filter:brightness(1.08); }
+  .klavier .door svg{ width:19px; height:19px; }
 
   /* ---- slot ---- */
-  .mist{ background:var(--vlak); border:2px solid var(--let); border-radius:14px;
-    padding:14px 16px; margin-bottom:18px; }
-  .mist b{ color:var(--let) }
+  .slot{ padding-bottom:10px; }
+  .slot h1{ font-size:23px; font-weight:800; letter-spacing:-.02em; margin:0 0 10px; }
+  .mist{ border:1px solid var(--let); border-radius:12px; padding:11px 13px; margin:0 0 14px;
+    background:color-mix(in srgb, var(--let) 7%, transparent); }
+  .mist b{ display:block; font-size:15px; color:var(--let); margin-bottom:2px; }
+  .mist p{ margin:0 0 6px; font-size:13px; color:var(--zacht); }
   .mist button{ display:block; width:100%; text-align:left; background:none; border:0;
-    border-top:1px solid var(--lijn); padding:11px 0; color:var(--accent);
-    font-size:16px; font-weight:600; min-height:var(--raak); }
-  .lijst{ margin:0 0 18px; }
-  .lijst .r{ display:flex; justify-content:space-between; gap:12px; padding:7px 0;
-    border-bottom:1px solid var(--lijn); font-size:15.5px; }
-  .lijst .r b{ font-variant-numeric:tabular-nums }
-  .lijst .r.anders b{ color:var(--let) }
-  .naam{ width:100%; height:var(--raak); font-size:17px; padding:0 14px; margin-bottom:16px;
-    border:2px solid var(--lijn); border-radius:12px; background:var(--vlak); color:var(--inkt); }
-  .bewaard{ font-size:12.5px; color:var(--goed); margin-top:10px; }
+    border-top:1px solid var(--lijn); padding:10px 0 9px; color:var(--accent);
+    font:inherit; font-size:15px; font-weight:600; min-height:var(--raak); }
+  /* Elke regel van de telling is aan te tikken, ook een die al ingevuld is.
+     Je ziet aan het eind pas dat je bij de hoodies een maat door elkaar hebt
+     gehaald, en dan wil je daarheen — niet alleen naar wat nog leeg is. */
+  .somrij{ display:flex; justify-content:space-between; align-items:center; gap:12px;
+    width:100%; padding:7px 8px; margin:0 -8px; min-height:var(--raak);
+    border:0; background:transparent; color:inherit; font:inherit; text-align:left;
+    border-radius:9px; position:relative; }
+  .somrij + .somrij::before{ content:""; position:absolute; left:8px; right:8px; top:0;
+    height:1px; background:var(--lijn); }
+  .somrij:active{ background:var(--toetsdruk); }
+  .somrij span{ flex:1 1 auto; min-width:0; font-size:15px; }
+  .somrij b{ flex:0 0 auto; font-variant-numeric:tabular-nums; font-size:17px; }
+  .somrij .anders{ color:var(--let); font-weight:600; font-size:12px; }
+  .somtotaal{ display:flex; justify-content:space-between; gap:12px;
+    padding:12px 8px 4px; margin:4px -8px 0; border-top:2px solid var(--lijn);
+    font-size:17px; font-weight:800; }
+  .somtotaal b{ font-variant-numeric:tabular-nums; }
+  .naam{ width:100%; height:var(--raak); font-size:17px; padding:0 14px; margin:16px 0 4px;
+    border:1px solid var(--lijn); border-radius:12px; background:var(--vlak);
+    color:var(--inkt); }
+  .naam:focus{ outline:none; border-color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+
+  /* ---- voet ---- */
+  .voet{ flex:0 0 auto; padding:9px 14px calc(12px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--lijn); background:var(--vlak); display:flex; gap:10px; }
+  .knop{ flex:1 1 auto; min-height:var(--raak); border:0; border-radius:13px;
+    font:inherit; font-size:16.5px; font-weight:700; background:var(--accent);
+    color:var(--opaccent); display:flex; align-items:center; justify-content:center; gap:8px; }
+  .knop svg{ width:18px; height:18px; display:block; }
+  .knop.stil{ flex:0 0 36%; background:transparent; color:var(--accent);
+    border:1px solid var(--lijn); }
+  .knop:disabled{ opacity:.4 }
+
+  .bewaard{ font-size:12.5px; color:var(--goed); padding:0 16px 10px; }
   .stuk{ padding:40px 18px; text-align:center; color:var(--zacht); }
+  .stuk h1{ font-size:22px; color:var(--inkt); margin:0 0 8px; }
 
-  /* ---- De balk boven het toetsenbord --------------------------------------
-     Op Android heeft het cijferklavier een pijl naar het volgende veld. Op een
-     iPhone niet: daar is het tien toetsen en een backspace, en er verschijnt
-     ook geen balkje met pijltjes — nagekeken op een echte telefoon. Dus bouwen
-     we hem zelf, boven het toetsenbord.
-
-     Hij staat er alleen als je in een vakje typt, en houdt "volgend artikel"
-     binnen duimbereik zodat je er niet voor hoeft te scrollen. De plek komt van
-     visualViewport: dat is het enige wat weet hoe hoog het toetsenbord nu is. */
-  .klavierbalk{ position:fixed; left:0; right:0; top:0; z-index:40;
-    display:none; gap:7px; align-items:center;
-    padding:6px 10px calc(6px + env(safe-area-inset-bottom));
-    background:var(--vlak); border-top:1px solid var(--lijn);
-    box-shadow:0 -6px 18px rgba(0,0,0,.22); }
-  .klavierbalk.aan{ display:flex; }
-  /* Zolang de balk er staat is de onderbalk overbodig: hij doet hetzelfde en
-     zou er doorheen schemeren. */
-  body.typt .voet{ visibility:hidden; }
-  .klavierbalk button{ min-height:40px; border-radius:10px; border:1px solid var(--lijn);
-    background:transparent; color:var(--inkt); font-size:17px; font-weight:700;
-    padding:0 15px; flex:0 0 auto; }
-  .klavierbalk button:disabled{ opacity:.3; }
-  .klavierbalk .waar{ flex:1 1 auto; min-width:0; font-size:12px; color:var(--zacht);
-    text-align:center; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .klavierbalk .door{ border-color:transparent; background:var(--accent); color:#fff;
-    font-size:14.5px; }
 </style>
 </head>
 <body>
 <div class="scherm" id="app"><div class="stuk">Even laden…</div></div>
 
-<div class="klavierbalk" id="klavierbalk">
-  <button type="button" id="kb-vorige" aria-label="Vorige maat">&lsaquo;</button>
-  <button type="button" id="kb-volgende" aria-label="Volgende maat">&rsaquo;</button>
-  <span class="waar" id="kb-waar"></span>
-  <button type="button" class="door" id="kb-door">Volgend artikel</button>
-</div>
+
 
 <script>
 /* ===========================================================================
@@ -295,322 +344,233 @@ function bericht(){
   return regels.join('\n');
 }
 
+/* ---- de iconen ---------------------------------------------------------- */
+/* Getekend, niet geleend uit de tekenset: een backspace als ⌫ komt op de ene
+   telefoon als een pijl en op de andere als een leeg vierkantje. */
+var IC = {
+  wis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 5H9.4a2 2 0 0 0-1.5.7l-4.6 5.6a1.2 1.2 0 0 0 0 1.4l4.6 5.6a2 2 0 0 0 1.5.7H20a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/><path d="M16.5 9.5 12 14m0-4.5 4.5 4.5"/></svg>',
+  pijl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13m-5.5-6 6 6-6 6"/></svg>',
+  terug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H6m5.5-6-6 6 6 6"/></svg>',
+  vink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12.5 5.2 5.2L20 7"/></svg>',
+  doos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12m0 9V12m9-4.5L12 12"/></svg>',
+  stuur:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2.5 11 13"/><path d="M21.5 2.5 15 21.5l-4-8.5-8.5-4Z"/></svg>'
+};
+
+/* MAAT is waar de telling staat binnen het artikel; VERS onthoudt of het
+   volgende cijfer vervangt of aanplakt, LANDT welke regel net een waarde kreeg. */
+var MAAT = 0, VERS = null, LANDT = null, ZEKER = false;
+
 /* ---- tekenen ------------------------------------------------------------ */
-function teken(){
-  var app = document.getElementById('app');
+function kop(){
   var totaal = alleRegels().length, af = gedaan();
   var pct = totaal ? Math.round(af / totaal * 100) : 0;
-
-  var kop = '<div class="kop"><div class="titel">'
+  return '<div class="kop"><div class="titel">'
     + '<div class="band">' + esc(D.b) + '</div>'
-    + '<div class="stand">Stand ' + esc(D.s) + '</div></div>'
-    + '<div class="plaats">' + esc(D.v) + (D.d ? ' · ' + esc(D.d) : '')
-    + ' · ' + (D.m === 'in' ? 'In count' : 'Final count') + '</div>'
-    + '<div class="balk"><i style="width:' + pct + '%"></i></div>'
-    + '<div class="vorder">' + af + ' van ' + totaal + ' regels geteld</div></div>';
+    + '<div class="stand">Stand ' + esc(D.s) + ' · ' + (D.m === 'in' ? 'in' : 'final') + '</div></div>'
+    + '<div class="meter"><span class="balk"><i style="width:' + pct + '%"></i></span>'
+    + '<span class="vorder">' + af + ' / ' + totaal + '</span></div></div>';
+}
 
-  if (STAP >= ITEMS.length){ app.innerHTML = kop + slot(); naSlot(); return; }
+function teken(){
+  var app = document.getElementById('app');
+  app.innerHTML = (STAP >= ITEMS.length) ? kop() + slot() : kop() + tellen();
+  LANDT = null;
+  koppel();
+}
 
+function tellen(){
   var p = ITEMS[STAP];
-  /* De invulvelden staan in een <form>. Dat is niet om iets te versturen — het
-     is wat iOS nodig heeft om boven het toetsenbord het balkje met ‹ › en
-     Gereed te tonen, waarmee je van maat naar maat springt. Op het
-     cijferklavier van een iPhone zit geen Volgende-toets en die valt er ook
-     niet bij te maken; dit balkje is de enige weg die Apple biedt.
-     Op Android verandert er niets: daar heeft het klavier zijn eigen Volgende. */
-  var h = kop + '<form class="midden" onsubmit="return false">'
-    + (p.band ? '<p class="onder" style="margin-bottom:4px">' + esc(p.band) + '</p>' : '')
-    + '<h1>' + esc(p.naam) + '</h1>'
-    + '<p class="onder">Artikel ' + (STAP + 1) + ' van ' + ITEMS.length
-    + (p.regels.length > 1 ? ' · ' + p.regels.length + ' maten' : '') + '</p>';
+  if (MAAT >= p.regels.length) MAAT = 0;
 
-  p.regels.forEach(function(r){
+  var h = '<div class="midden"><div class="artikel">'
+    + '<button type="button" class="terug" data-vorigart="1" aria-label="Vorig artikel"'
+    + (STAP === 0 ? ' disabled' : '') + '>' + IC.terug + '</button>'
+    + '<h1>' + esc(p.naam) + '</h1>'
+    + '<span class="teller">' + (STAP + 1) + ' / ' + ITEMS.length + '</span></div>';
+  if (p.band) h += '<p class="onder">' + esc(p.band) + '</p>';
+
+  p.regels.forEach(function(r, i){
     var v = WAARDEN[r.no];
-    var heeft = v !== undefined && v !== '';
-    h += '<div class="regel">'
-      +  '<div class="maat">' + esc(p.regels.length > 1 ? r.name : 'Aantal')
-      +  (D.m === 'in' && r.in ? '<small>volgens de lijst ' + r.in + '</small>' : '')
-      +  '</div>'
-      +  '<input class="vak' + (heeft ? ' af' : '') + '" type="text" inputmode="numeric"'
-      +  ' enterkeyhint="next" autocomplete="off" pattern="[0-9]*" maxlength="4" data-no="' + r.no + '"'
-      +  ' value="' + (heeft ? esc(v) : '') + '" placeholder="–"'
-      +  ' aria-label="Aantal ' + esc(p.regels.length > 1 ? r.name : p.naam) + '">'
-      +  '<button type="button" class="nul" data-nul="' + r.no + '">geen</button>'
-      +  '</div>';
+    var af = v !== undefined && v !== '';
+    h += '<button type="button" class="regel' + (i === MAAT ? ' hier' : '')
+      + (LANDT === i ? ' landt' : '') + '" data-ga="' + i + '"'
+      + ' aria-label="' + esc(p.regels.length > 1 ? r.name : 'Aantal')
+      + (af ? ', ' + esc(v) + ' geteld' : ', nog niet geteld') + '">'
+      + '<span class="maat">' + esc(p.regels.length > 1 ? r.name : 'Aantal')
+      + (D.m === 'in' && r.in ? '<small>volgens de lijst ' + r.in + '</small>' : '')
+      + '</span>'
+      + '<span class="waarde ' + (af ? 'af' : 'leeg') + '">' + (af ? esc(v) : '–') + '</span>'
+      + '<span class="vink' + (af ? ' aan' : '') + '">' + IC.vink + '</span></button>';
   });
 
-  /* "Volgende" stond op deze knop én op de toets van het Android-klavier, en
-     die doen iets anders: de toets gaat naar de volgende maat, de knop naar het
-     volgende artikel. Vandaar de naam erbij. */
-  h += '<button type="button" class="uitverkocht" id="uitverkocht">Alles uitverkocht</button>';
+  h += '<button type="button" class="uitverkocht' + (ZEKER ? ' zeker' : '') + '" data-uit="1">'
+    + (ZEKER ? 'Zeker weten? Tik nog eens — alles wordt 0'
+             : IC.doos + 'Alles uitverkocht') + '</button></div>';
+  return h + klavier();
+}
 
-  h += '</form><div class="voet">'
-    + '<button type="button" class="knop stil" id="terug"' + (STAP === 0 ? ' disabled' : '') + '>Vorig artikel</button>'
-    + '<button type="button" class="knop" id="verder">' + (STAP === ITEMS.length - 1 ? 'Naar het slot' : 'Volgend artikel') + '</button>'
-    + '</div>';
-
-  app.innerHTML = h;
-  koppel();
+function klavier(){
+  var p = ITEMS[STAP];
+  var laatsteMaat = (MAAT >= p.regels.length - 1);
+  var laatsteArt = (STAP >= ITEMS.length - 1);
+  var label = laatsteMaat ? (laatsteArt ? 'Naar het<br>slot' : 'Volgend<br>artikel') : 'Volgende<br>maat';
+  var h = '<div class="klavier">';
+  var toets = function(n){ return '<button type="button" data-cijfer="' + n + '">' + n + '</button>'; };
+  h += toets(1) + toets(2) + toets(3)
+    + '<button type="button" data-wis="1" aria-label="Laatste cijfer wissen">' + IC.wis + '</button>'
+    + toets(4) + toets(5) + toets(6)
+    + '<button type="button" class="hulp" data-geen="1">geen</button>'
+    + toets(7) + toets(8) + toets(9)
+    + '<button type="button" class="door" data-door="1">' + IC.pijl + '<span>' + label + '</span></button>'
+    + '<button type="button" class="nul" data-cijfer="0">0</button>';
+  return h + '</div>';
 }
 
 function slot(){
   var open = [];
-  ITEMS.forEach(function(p){
-    p.regels.forEach(function(r){
-      if (WAARDEN[r.no] === undefined || WAARDEN[r.no] === '')
-        open.push({ p:p, r:r });
+  ITEMS.forEach(function(p, pi){
+    p.regels.forEach(function(r, ri){
+      if (WAARDEN[r.no] === undefined || WAARDEN[r.no] === '') open.push({ p:p, r:r, pi:pi, ri:ri });
     });
   });
 
-  var h = '<div class="midden"><h1>Nakijken en versturen</h1>';
+  var h = '<div class="midden slot"><h1>Nakijken en versturen</h1>';
 
   if (open.length){
     h += '<div class="mist"><b>' + open.length + ' regel' + (open.length === 1 ? '' : 's')
-      +  ' nog niet geteld.</b><p style="margin:4px 0 0;font-size:14px;color:var(--zacht)">'
-      +  'Een leeg vakje is dubbelzinnig: is het nul, of overgeslagen? Vul ook de nullen in.</p>';
-    open.slice(0, 8).forEach(function(o){
-      var i = ITEMS.indexOf(o.p);
-      h += '<button type="button" data-ga="' + i + '">' + esc(o.p.naam)
-        +  (o.p.regels.length > 1 ? ' — ' + esc(o.r.name) : '') + ' →</button>';
+      + ' nog niet geteld</b><p>Een leeg vakje is dubbelzinnig: is het nul, of '
+      + 'overgeslagen? Vul ook de nullen in.</p>';
+    open.slice(0, 6).forEach(function(o){
+      h += '<button type="button" data-ganaar="' + o.pi + ':' + o.ri + '">' + esc(o.p.naam)
+        + (o.p.regels.length > 1 ? ' · ' + esc(o.r.name) : '') + ' &rsaquo;</button>';
     });
-    if (open.length > 8) h += '<p style="margin:10px 0 0;font-size:13px;color:var(--zacht)">en nog '
-      + (open.length - 8) + '</p>';
+    if (open.length > 6) h += '<p style="margin:9px 0 0">en nog ' + (open.length - 6) + '</p>';
     h += '</div>';
   }
 
-  h += '<div class="lijst">';
+  /* Elke regel is een knop, ook een die al een getal heeft. Je ziet aan het
+     eind pas dat je bij de hoodies twee maten door elkaar hebt gehaald, en dan
+     wil je daar naartoe — niet alleen naar wat nog leeg is. */
   var som = 0;
-  ITEMS.forEach(function(p){
-    p.regels.forEach(function(r){
+  ITEMS.forEach(function(p, pi){
+    p.regels.forEach(function(r, ri){
       var v = WAARDEN[r.no];
       if (v === undefined || v === '') return;
       som += parseInt(v, 10) || 0;
-      var anders = (D.m === 'in' && r.in != null && parseInt(v,10) !== r.in);
-      h += '<div class="r' + (anders ? ' anders' : '') + '"><span>' + esc(p.naam)
-        +  (p.regels.length > 1 ? ' · ' + esc(r.name) : '') + '</span><b>' + esc(v)
-        +  (anders ? ' (lijst ' + r.in + ')' : '') + '</b></div>';
+      var anders = (D.m === 'in' && r.in != null && parseInt(v, 10) !== r.in);
+      h += '<button type="button" class="somrij" data-ganaar="' + pi + ':' + ri + '">'
+        + '<span>' + esc(p.naam) + (p.regels.length > 1 ? ' · ' + esc(r.name) : '')
+        + (anders ? ' <span class="anders">lijst ' + r.in + '</span>' : '') + '</span>'
+        + '<b>' + esc(v) + '</b></button>';
     });
   });
-  h += '<div class="r"><span><b>Totaal stuks</b></span><b>' + som + '</b></div></div>';
+  h += '<div class="somtotaal"><span>Totaal stuks</span><b>' + som + '</b></div>';
 
-  h += '<input class="naam" id="teller" placeholder="Je naam" value="' + esc(TELLER) + '">'
-    +  '</div><div class="voet">'
-    +  '<button type="button" class="knop stil" id="terug">Vorige</button>'
-    +  '<button type="button" class="knop" id="stuur">Versturen</button>'
-    +  '</div>';
+  h += '<input class="naam" id="teller" placeholder="Je naam" autocomplete="name" value="'
+    + esc(TELLER) + '"></div>';
+
+  h += '<div class="voet">'
+    + '<button type="button" class="knop stil" data-terug="1">' + IC.terug + 'Terug</button>'
+    + '<button type="button" class="knop" id="stuur">' + IC.stuur + 'Versturen</button></div>';
   return h;
+}
+
+/* ---- wat de knoppen doen ------------------------------------------------ */
+function huidigeRegel(){
+  var p = ITEMS[STAP];
+  return p && p.regels[MAAT] ? p.regels[MAAT] : null;
+}
+
+function cijfer(n){
+  var r = huidigeRegel(); if (!r) return;
+  var nu = WAARDEN[r.no];
+  /* Het eerste cijfer na aankomst vervangt wat er stond, daarna plak je aan —
+     zoals een kassa. Er wordt alleen gezet, nooit stilletjes gewist. */
+  if (nu === undefined || VERS !== r.no) WAARDEN[r.no] = String(n);
+  else WAARDEN[r.no] = (nu + String(n)).replace(/^0+(?=\d)/, '').slice(0, 4);
+  VERS = r.no; LANDT = MAAT; ZEKER = false;
+  bewaar(); teken();
+}
+function wis(){
+  var r = huidigeRegel(); if (!r) return;
+  if (WAARDEN[r.no] === undefined) return;
+  var t = String(WAARDEN[r.no]).slice(0, -1);
+  if (t === '') delete WAARDEN[r.no]; else WAARDEN[r.no] = t;
+  VERS = r.no; ZEKER = false;
+  bewaar(); teken();
+}
+function door(){
+  VERS = null; ZEKER = false;
+  if (MAAT < ITEMS[STAP].regels.length - 1) MAAT++;
+  else { STAP++; MAAT = 0; }
+  window.scrollTo(0, 0); teken();
+}
+function geen(){
+  var r = huidigeRegel(); if (!r) return;
+  WAARDEN[r.no] = '0'; LANDT = MAAT; bewaar(); door();
+}
+function vorigArtikel(){
+  if (STAP === 0) return;
+  STAP--; MAAT = 0; VERS = null; ZEKER = false;
+  window.scrollTo(0, 0); teken();
+}
+function uitverkocht(){
+  var p = ITEMS[STAP];
+  var ingevuld = p.regels.some(function(r){
+    return WAARDEN[r.no] !== undefined && WAARDEN[r.no] !== '' && WAARDEN[r.no] !== '0';
+  });
+  if (ingevuld && !ZEKER){ ZEKER = true; return teken(); }
+  p.regels.forEach(function(r){ WAARDEN[r.no] = '0'; });
+  VERS = null; ZEKER = false; STAP++; MAAT = 0;
+  bewaar(); window.scrollTo(0, 0); teken();
+}
+function ganaar(pi, ri){
+  STAP = pi; MAAT = ri; VERS = null; ZEKER = false;
+  window.scrollTo(0, 0); teken();
 }
 
 /* ---- knopen leggen ------------------------------------------------------ */
 function koppel(){
   var app = document.getElementById('app');
 
-  var velden = app.querySelectorAll('.vak');
-  Array.prototype.forEach.call(velden, function(el, i){
-    /* Op Android heet de toets rechtsonder "volgende" en springt hij vanzelf
-       naar het volgende veld. Op de laatste maat van een artikel is er niets
-       meer om heen te springen — dan hoort hij door te gaan naar het volgende
-       artikel, want dat is wat je op dat moment wilt. */
-    /* De balk verschijnt zodra je in een vakje staat en verdwijnt als je er
-       weer uit bent — met een korte pauze, want tussen twee velden door is de
-       focus even nergens. */
-    /* Alles selecteren zodra je in een vakje komt. Staat er al een 0 en typ je
-       een 7, dan hoort er 7 te staan en niet 07 — je overschrijft wat er stond,
-       je vult het niet aan. Dat is wat een teller verwacht als hij een vakje
-       aantikt om het te verbeteren. */
-    el.addEventListener('focus', function(){
-      KB.veld = el;
-      el.dataset.vers = '1';
-      el.dataset.oud = el.value;
-      setTimeout(function(){ try { el.select(); } catch(_){} }, 0);
-      kbBij();
-    });
-    el.addEventListener('blur', function(){
-      setTimeout(function(){
-        if (document.activeElement && document.activeElement.classList
-            && document.activeElement.classList.contains('vak')) return;
-        KB.veld = null; kbPlaats();
-      }, 120);
-    });
-    el.addEventListener('keydown', function(e){
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      if (i < velden.length - 1){ velden[i + 1].focus(); velden[i + 1].select(); return; }
-      var v = document.getElementById('verder');
-      if (v) v.click();
-    });
-    el.addEventListener('input', function(){
-      /* Vangnet onder het selecteren hierboven. Safari op iOS laat een select()
-         vlak na het aantikken wel eens lopen, en dan staat er alsnog 07. Is dit
-         de eerste aanslag na het aantikken en is de oude waarde er gewoon nog,
-         met wat nieuws eraan geplakt, dan houden we alleen het nieuwe over. */
-      if (el.dataset.vers === '1'){
-        var oud = el.dataset.oud || '';
-        if (oud && el.value.length > oud.length){
-          if (el.value.indexOf(oud) === 0) el.value = el.value.slice(oud.length);
-          else if (el.value.slice(-oud.length) === oud) el.value = el.value.slice(0, -oud.length);
-        }
-        el.dataset.vers = '';
-      }
-      var schoon = el.value.replace(/[^0-9]/g, '').slice(0, 4);
-      if (schoon !== el.value) el.value = schoon;
-      var no = +el.dataset.no;
-      if (schoon === '') delete WAARDEN[no]; else WAARDEN[no] = schoon;
-      el.classList.toggle('af', schoon !== '');
-      bewaar();
-      balkBij();
-    });
-  });
-
-  Array.prototype.forEach.call(app.querySelectorAll('[data-nul]'), function(el){
-    el.addEventListener('click', function(){
-      var no = +el.dataset.nul;
-      WAARDEN[no] = '0';
-      bewaar();
-      teken();
-    });
-  });
-
-  /* Uitverkocht: alle maten van dit artikel op 0 en door naar het volgende.
-     Staat er al iets ingevuld, dan vraagt hij eerst na — hij gooit immers weg
-     wat je net geteld hebt, en op een telefoon zit een misgetikte knop zo in je
-     duim. Geen systeemvenster: een tweede tik op dezelfde knop. */
-  var u = document.getElementById('uitverkocht');
-  if (u) u.addEventListener('click', function(){
-    var p = ITEMS[STAP];
-    if (!p) return;
-    var ingevuld = p.regels.some(function(r){
-      return WAARDEN[r.no] !== undefined && WAARDEN[r.no] !== '' && WAARDEN[r.no] !== '0';
-    });
-    if (ingevuld && !u.classList.contains('zeker')){
-      u.classList.add('zeker');
-      u.textContent = 'Zeker weten? Tik nog eens — alles wordt 0';
-      return;
+  app.onclick = function(e){
+    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],#stuur');
+    if (!el || el.disabled) return;
+    if (el.dataset.cijfer !== undefined) return cijfer(el.dataset.cijfer);
+    if (el.dataset.wis) return wis();
+    if (el.dataset.geen) return geen();
+    if (el.dataset.door) return door();
+    if (el.dataset.uit) return uitverkocht();
+    if (el.dataset.vorigart) return vorigArtikel();
+    if (el.dataset.terug) return ganaar(ITEMS.length - 1, 0);
+    if (el.dataset.ganaar){
+      var d = el.dataset.ganaar.split(':');
+      return ganaar(+d[0], +d[1]);
     }
-    p.regels.forEach(function(r){ WAARDEN[r.no] = '0'; });
-    bewaar();
-    STAP++;
-    window.scrollTo(0,0);
-    teken();
-  });
+    if (el.dataset.ga !== undefined){
+      MAAT = +el.dataset.ga; VERS = null; ZEKER = false; return teken();
+    }
+    if (el.id === 'stuur'){
+      var naar = D.w ? String(D.w).replace(/[^0-9]/g, '') : '';
+      window.location.href = 'https://wa.me/' + naar + '?text=' + encodeURIComponent(bericht());
+    }
+  };
 
-  var v = document.getElementById('verder');
-  if (v) v.addEventListener('click', function(){ STAP++; window.scrollTo(0,0); teken(); });
-  var t = document.getElementById('terug');
-  if (t) t.addEventListener('click', function(){ if (STAP > 0) STAP--; window.scrollTo(0,0); teken(); });
-}
-
-function naSlot(){
-  var app = document.getElementById('app');
-  Array.prototype.forEach.call(app.querySelectorAll('[data-ga]'), function(el){
-    el.addEventListener('click', function(){ STAP = +el.dataset.ga; window.scrollTo(0,0); teken(); });
-  });
   var n = document.getElementById('teller');
   if (n) n.addEventListener('input', function(){ TELLER = n.value.trim(); bewaar(); });
-  var t = document.getElementById('terug');
-  if (t) t.addEventListener('click', function(){ STAP = ITEMS.length - 1; window.scrollTo(0,0); teken(); });
-  var s = document.getElementById('stuur');
-  if (s) s.addEventListener('click', function(){
-    var naar = D.w ? String(D.w).replace(/[^0-9]/g, '') : '';
-    window.location.href = 'https://wa.me/' + naar + '?text=' + encodeURIComponent(bericht());
-  });
 }
 
-/* ---- De balk boven het toetsenbord ------------------------------------- */
-var KB = { veld: null };
-
-function kbPlaats(){
-  var balk = document.getElementById('klavierbalk');
-  if (!balk) return;
-  if (!KB.veld){
-    balk.classList.remove('aan');
-    document.body.classList.remove('typt');
-    return;
-  }
-  balk.classList.add('aan');
-  document.body.classList.add('typt');
-  /* visualViewport weet als enige hoe hoog het toetsenbord nu is. Zonder dat
-     staat de balk eronder en zie je hem niet. */
-  var vv = window.visualViewport;
-  var onder = vv ? (vv.height + vv.offsetTop) : window.innerHeight;
-  /* Nooit lager dan de onderkant van het venster zelf. Zonder deze grens kan
-     visualViewport een hoogte opgeven die buiten beeld valt en staat de balk
-     ergens onder de vouw — precies het probleem dat hij moest oplossen. */
-  onder = Math.min(onder, window.innerHeight);
-  balk.style.transform = 'translateY(' + Math.max(0, onder - balk.offsetHeight) + 'px)';
-}
-
-function kbSpring(richting){
-  var velden = Array.prototype.slice.call(document.querySelectorAll('.vak'));
-  var i = velden.indexOf(KB.veld);
-  if (i < 0) return;
-  var j = i + richting;
-  if (j < 0 || j >= velden.length) return;
-  velden[j].focus();
-  velden[j].select();
-}
-
-function kbBij(){
-  var velden = Array.prototype.slice.call(document.querySelectorAll('.vak'));
-  var i = velden.indexOf(KB.veld);
-  var waar = document.getElementById('kb-waar');
-  var v = document.getElementById('kb-vorige');
-  var n = document.getElementById('kb-volgende');
-  if (v) v.disabled = (i <= 0);
-  if (n) n.disabled = (i < 0 || i >= velden.length - 1);
-  if (waar && i >= 0){
-    var p = ITEMS[STAP];
-    waar.textContent = (p && p.regels.length > 1)
-      ? p.regels[i].name + ' · maat ' + (i + 1) + ' van ' + velden.length
-      : (p ? p.naam : '');
-  }
-  kbPlaats();
-}
-
-(function(){
-  var balk = document.getElementById('klavierbalk');
-  if (!balk) return;
-  /* De knoppen luisteren naar pointerdown en niet naar click, en dat is geen
-     stijlkwestie.
-
-     De balk moet de focus vasthouden: valt die weg, dan klapt het toetsenbord
-     dicht en springt de balk met het toetsenbord mee naar beneden, nog voordat
-     je vinger los is. Daarvoor is een preventDefault nodig. Maar een
-     preventDefault op touchstart blaast op een iPhone de hele aanraking af — er
-     komt dan geen click meer achteraan, en de knop doet niets. Precies wat er
-     op Sanneke's telefoon gebeurde: de balk stond er, de knoppen waren dood.
-
-     Dus doen we het werk op het moment van aanraken zelf. Eén weg voor beide
-     telefoons, en de focus blijft staan. */
-  var k = function(id, fn){
-    var el = document.getElementById(id);
-    if (!el) return;
-    var raak = function(e){
-      if (el.disabled) { e.preventDefault(); return; }
-      e.preventDefault();   /* houdt de focus, en dus het toetsenbord, waar hij is */
-      fn();
-    };
-    if (window.PointerEvent) el.addEventListener('pointerdown', raak);
-    else { el.addEventListener('touchstart', raak, { passive:false });
-           el.addEventListener('mousedown', raak); }
-  };
-  k('kb-vorige', function(){ kbSpring(-1); });
-  k('kb-volgende', function(){ kbSpring(1); });
-  k('kb-door', function(){ var d = document.getElementById('verder'); if (d) d.click(); });
-  if (window.visualViewport){
-    window.visualViewport.addEventListener('resize', kbPlaats);
-    window.visualViewport.addEventListener('scroll', kbPlaats);
-  }
-  window.addEventListener('resize', kbPlaats);
-})();
-
-function balkBij(){
-  var totaal = alleRegels().length, af = gedaan();
-  var i = document.querySelector('.balk i');
-  var p = document.querySelector('.vorder');
-  if (i) i.style.width = (totaal ? Math.round(af/totaal*100) : 0) + '%';
-  if (p) p.textContent = af + ' van ' + totaal + ' regels geteld';
-}
+/* Op een laptop hoort een toetsenbord gewoon te werken. Op de telefoon komt er
+   geen aan te pas — dit scherm heeft zijn eigen cijfers. */
+document.addEventListener('keydown', function(e){
+  if (!D || !ITEMS.length || STAP >= ITEMS.length) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  var a = document.activeElement;
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
+  if (/^[0-9]$/.test(e.key)){ e.preventDefault(); return cijfer(e.key); }
+  if (e.key === 'Backspace'){ e.preventDefault(); return wis(); }
+  if (e.key === 'Enter'){ e.preventDefault(); return door(); }
+});
 
 /* ---- starten ------------------------------------------------------------ */
 (function(){
@@ -651,11 +611,10 @@ function balkBij(){
   if (op){
     var el = document.createElement('div');
     el.className = 'bewaard';
-    el.style.cssText = 'padding:0 18px 14px;color:var(--goed);font-size:13px';
     el.textContent = 'Je eerdere telling van ' + new Date(op).toLocaleTimeString('nl-NL',
       { hour:'2-digit', minute:'2-digit' }) + ' is teruggezet.';
     var m = document.querySelector('.midden');
-    if (m) m.parentNode.insertBefore(el, m.nextSibling);
+    if (m) m.insertBefore(el, m.firstChild);
   }
 })();
 </script>
