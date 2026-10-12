@@ -73,6 +73,7 @@
 
   .artikel{ display:flex; align-items:center; justify-content:space-between;
     gap:8px; margin:0 0 6px; }
+  .artikel .verder{ margin-left:0; margin-right:-7px; }
   .artikel .terug{ flex:0 0 auto; width:38px; height:38px; margin-left:-7px;
     display:flex; align-items:center; justify-content:center;
     border:0; border-radius:50%; background:transparent; color:var(--accent); }
@@ -140,7 +141,13 @@
   .klavier button:active{ background:var(--toetsdruk); transform:scale(.97); }
   .klavier button svg{ width:22px; height:22px; display:block; }
   .klavier .hulp{ font-size:15px; font-weight:700; color:var(--zacht); }
-  .klavier .nul{ grid-column:span 3; }
+  /* De nul staat over twee vakjes in plaats van drie; het vakje dat vrijkomt
+     wordt "vorige". Die staat daarmee direct links van de blauwe toets, zodat
+     heen en terug naast elkaar onder dezelfde duim liggen. */
+  .klavier .nul{ grid-column:span 2; }
+  .klavier .vorige{ font-size:13px; font-weight:700; color:var(--accent); gap:5px; }
+  .klavier .vorige svg{ width:16px; height:16px; }
+  .klavier .vorige:disabled{ opacity:.3; color:var(--zacht); }
   .klavier .door{ grid-row:span 2; flex-direction:column; gap:3px;
     background:var(--accent); border-color:transparent; color:var(--opaccent);
     font-size:12.5px; font-weight:700; line-height:1.15; text-align:center; padding:0 4px; }
@@ -202,7 +209,11 @@
   .somrij:active{ background:var(--toetsdruk); }
   .somrij span{ flex:1 1 auto; min-width:0; font-size:15px; }
   .somrij b{ flex:0 0 auto; font-variant-numeric:tabular-nums; font-size:17px; }
-  .somrij .anders{ color:var(--let); font-weight:600; font-size:12px; }
+  /* "lijst 12" in het rood las als een code. Wat er staat is het aantal dat
+     volgens het Stands-blad bij je hoort te liggen, en dat hoort er in gewone
+     woorden te staan — en alleen als het afwijkt. */
+  .somrij small{ display:block; font-size:12px; font-weight:600; color:var(--let);
+    line-height:1.3; margin-top:1px; }
   .somtotaal{ display:flex; justify-content:space-between; gap:12px;
     padding:12px 8px 4px; margin:4px -8px 0; border-top:2px solid var(--lijn);
     font-size:17px; font-weight:800; }
@@ -527,7 +538,9 @@ function tellen(){
     + '<button type="button" class="terug" data-vorigart="1" aria-label="Vorig artikel"'
     + (STAP === 0 ? ' disabled' : '') + '>' + IC.terug + '</button>'
     + '<h1>' + esc(p.naam) + '</h1>'
-    + '<span class="teller">' + (STAP + 1) + ' / ' + ITEMS.length + '</span></div>';
+    + '<span class="teller">' + (STAP + 1) + ' / ' + ITEMS.length + '</span>'
+    + '<button type="button" class="terug verder" data-volgart="1" aria-label="Volgend artikel"'
+    + (STAP >= ITEMS.length - 1 ? ' disabled' : '') + '>' + IC.pijl + '</button></div>';
   if (p.band) h += '<p class="onder">' + esc(p.band) + '</p>';
 
   p.regels.forEach(function(r, i){
@@ -563,7 +576,9 @@ function klavier(){
     + '<button type="button" class="hulp" data-geen="1">geen</button>'
     + toets(7) + toets(8) + toets(9)
     + '<button type="button" class="door" data-door="1">' + IC.pijl + '<span>' + label + '</span></button>'
-    + '<button type="button" class="nul" data-cijfer="0">0</button>';
+    + '<button type="button" class="nul" data-cijfer="0">0</button>'
+    + '<button type="button" class="vorige" data-vorige="1" aria-label="Vorige regel"'
+    + (STAP === 0 && MAAT === 0 ? ' disabled' : '') + '>' + IC.terug + 'vorige</button>';
   return h + '</div>';
 }
 
@@ -600,10 +615,13 @@ function slot(){
       var v = WAARDEN[r.no];
       if (v === undefined || v === '') return;
       som += parseInt(v, 10) || 0;
-      var anders = (D.m === 'in' && r.in != null && parseInt(v, 10) !== r.in);
+      /* Alleen uitleggen als het afwijkt. Een scherm vol regels die allemaal
+         kloppen hoort stil te zijn; dan springt de ene die niet klopt eruit. */
+      var d = (D.m === 'in' && r.in != null) ? (parseInt(v, 10) || 0) - r.in : 0;
       h += '<button type="button" class="somrij" data-ganaar="' + pi + ':' + ri + '">'
         + '<span>' + esc(p.naam) + (p.regels.length > 1 ? ' · ' + esc(r.name) : '')
-        + (anders ? ' <span class="anders">lijst ' + r.in + '</span>' : '') + '</span>'
+        + (d ? '<small>volgens de lijst ' + r.in + ' — ' + Math.abs(d)
+               + (d > 0 ? ' meer' : ' minder') + ' geteld</small>' : '') + '</span>'
         + '<b>' + esc(v) + '</b></button>';
     });
   });
@@ -651,6 +669,23 @@ function geen(){
   var r = huidigeRegel(); if (!r) return;
   WAARDEN[r.no] = '0'; LANDT = MAAT; bewaar(); door();
 }
+/* De spiegel van de blauwe toets: precies één regel terug. Vanaf de eerste maat
+   van een artikel kom je zo bij de laatste maat van het vorige — wie zich bij de
+   M vertikt hoeft niet het hele shirt opnieuw langs. */
+function vorige(){
+  VERS = null; ZEKER = false;
+  if (MAAT > 0) MAAT--;
+  else if (STAP > 0){
+    STAP--;
+    MAAT = Math.max(0, ITEMS[STAP].regels.length - 1);
+  } else return;
+  window.scrollTo(0, 0); teken();
+}
+function volgendArtikel(){
+  if (STAP >= ITEMS.length - 1) return;
+  STAP++; MAAT = 0; VERS = null; ZEKER = false;
+  window.scrollTo(0, 0); teken();
+}
 function vorigArtikel(){
   if (STAP === 0) return;
   STAP--; MAAT = 0; VERS = null; ZEKER = false;
@@ -676,7 +711,7 @@ function koppel(){
   var app = document.getElementById('app');
 
   app.onclick = function(e){
-    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],[data-kies],[data-wissel],#start,#stuur');
+    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-vorige],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],[data-volgart],[data-kies],[data-wissel],#start,#stuur');
     if (!el || el.disabled) return;
     if (el.dataset.kies){
       var v = document.getElementById('naam');
@@ -697,8 +732,10 @@ function koppel(){
     if (el.dataset.wis) return wis();
     if (el.dataset.geen) return geen();
     if (el.dataset.door) return door();
+    if (el.dataset.vorige) return vorige();
     if (el.dataset.uit) return uitverkocht();
     if (el.dataset.vorigart) return vorigArtikel();
+    if (el.dataset.volgart) return volgendArtikel();
     if (el.dataset.terug) return ganaar(ITEMS.length - 1, 0);
     if (el.dataset.ganaar){
       var d = el.dataset.ganaar.split(':');
@@ -732,7 +769,8 @@ document.addEventListener('keydown', function(e){
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
   if (/^[0-9]$/.test(e.key)){ e.preventDefault(); return cijfer(e.key); }
   if (e.key === 'Backspace'){ e.preventDefault(); return wis(); }
-  if (e.key === 'Enter'){ e.preventDefault(); return door(); }
+  if (e.key === 'Enter' || e.key === 'ArrowRight'){ e.preventDefault(); return door(); }
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); return vorige(); }
 });
 
 /* ---- beginnen ------------------------------------------------------------
