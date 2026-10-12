@@ -46,21 +46,32 @@
   /* Compacter dan eerst. Op een iPhone stond het toetsenbord over de vierde
      maat heen; nu passen er vijf onder elkaar, zodat een shirt in één beeld
      staat en je niet hoeft te scrollen terwijl je telt. */
-  .kop{ padding:9px 16px 7px; border-bottom:1px solid var(--lijn); background:var(--vlak); }
-  .kop .titel{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
-  .band{ font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
+  /* Dezelfde kop als op het papieren telvel: het gekleurde blokje van de zaal,
+     de artiest in kapitalen, en rechts de stand met eronder wat voor telling het
+     is. Daar stond hij goed, dus hier hoort hij ook zo te staan. */
+  .kop{ padding:10px 16px 7px; border-bottom:1px solid var(--lijn); background:var(--vlak); }
+  .hd{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    border-bottom:3px solid var(--inkt); padding-bottom:8px; }
+  .hl{ display:flex; align-items:flex-start; gap:10px; min-width:0; }
+  .sq{ flex:0 0 auto; width:34px; height:34px; border-radius:2px; background:var(--inkt); }
+  .band{ font-size:18px; font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
+    line-height:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sub{ font-size:11.5px; margin-top:4px; color:var(--zacht);
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  /* De stand is een knop: één link gaat naar alle stands, dus wie zich vergist
-     moet terug kunnen zonder de link opnieuw te vragen. */
-  .stand{ font-size:11.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
-    color:var(--zacht); flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
-    white-space:nowrap; border:0; background:transparent; font-family:inherit;
-    padding:3px 0 3px 8px; margin:-3px 0; }
-  .stand:active{ color:var(--accent); }
-  .plaats{ font-size:11.5px; color:var(--zacht); margin-top:1px; }
-  .balk{ height:4px; background:var(--lijn); border-radius:2px; margin-top:7px; overflow:hidden; }
+  .hr2{ flex:0 0 auto; text-align:right; border:0; background:transparent;
+    font-family:inherit; color:inherit; padding:0 0 0 6px; margin:0; }
+  .hr2:active .stand{ color:var(--accent); }
+  /* De stand is aantikbaar: één link gaat naar alle stands, dus wie zich
+     vergist moet terug kunnen zonder de link opnieuw te vragen. */
+  .stand{ display:block; font-size:14px; font-weight:800; line-height:1.15; white-space:nowrap; }
+  .kind{ display:block; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+    margin-top:3px; color:var(--zacht); white-space:nowrap; }
+  /* Allebei expliciet blok: ze stonden al onder elkaar, maar alleen doordat het
+     blokje erin display:block had. Dat is geen afspraak om op te bouwen. */
+  .balk{ display:block; height:4px; background:var(--lijn); border-radius:2px;
+    margin-top:8px; overflow:hidden; }
   .balk i{ display:block; height:4px; width:0; background:var(--accent); transition:width .2s; }
-  .vorder{ font-size:11px; color:var(--zacht); margin-top:4px; }
+  .vorder{ display:block; font-size:11px; color:var(--zacht); margin-top:4px; }
 
   /* ---- het artikel en zijn maten ----------------------------------------
      De lijst is een kolom met het klavier eronder. "Alles uitverkocht" hangt
@@ -87,8 +98,10 @@
     padding:4px 7px; margin:0 -7px; border-radius:10px; }
   .artnaam:active{ background:var(--toetsdruk); }
   .artnaam svg{ flex:0 0 auto; width:15px; height:15px; color:var(--flauw); display:block; }
-  .artikel h1{ flex:0 1 auto; min-width:0; font-size:22px; font-weight:800; letter-spacing:-.02em;
-    line-height:1.12; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  /* Liever twee regels dan "LONGSLEEVE MAR...": de naam van het artikel is waar
+     je op af gaat, en bij J. Cole zijn ze lang. */
+  .artikel h1{ flex:0 1 auto; min-width:0; font-size:21px; font-weight:800; letter-spacing:-.02em;
+    line-height:1.12; margin:0; overflow-wrap:anywhere; }
   .artikel .teller{ flex:0 0 auto; font-size:11.5px; font-weight:600; color:var(--zacht); }
   .onder{ font-size:12px; color:var(--zacht); margin:0 0 9px; }
 
@@ -338,6 +351,9 @@ function uitHash(){
       /* Veld 5 draagt dan niet één standnaam maar de hele lijst. Het vierde
          scheidingsteken komt in geen enkele zaalnaam voor. */
       d.stands = String(k[5] || '').split('\x04');
+      /* Veld 4 draagt bij deze vorm geen standnummer maar de kleur van de zaal:
+         het blokje linksboven, zoals op het papieren telvel. */
+      d.k = k[4] ? ('#' + String(k[4]).replace('#', '')) : '';
       d.s = null; d.n = null;
       if (!d.stands.length) return null;
     }
@@ -520,16 +536,57 @@ var IC = {
 var MAAT = 0, VERS = null, LANDT = null, ZEKER = false;
 
 /* ---- tekenen ------------------------------------------------------------ */
+/* De zaalkleur komt mee in de link. Op een donker scherm is een donkere
+   zaalkleur als letterkleur onleesbaar, dus dan blijft de ondertitel grijs; het
+   blokje houdt zijn kleur altijd. */
+function donkerScherm(){
+  try { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+  catch (e){ return false; }
+}
+function helderheid(hex){
+  var m = String(hex || '').replace('#', '');
+  if (m.length !== 6) return null;
+  var v = [0, 2, 4].map(function(i){
+    var c = parseInt(m.substr(i, 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+}
+function zaalKleur(){
+  var h = String(D.k || '');
+  return /^#[0-9a-f]{6}$/i.test(h) ? h : '';
+}
+function zaalTekstKleur(){
+  var h = zaalKleur(); if (!h) return '';
+  var l = helderheid(h);
+  if (l == null) return '';
+  /* Te donker op een donker scherm of te licht op een licht scherm: dan liever
+     de gewone grijze regel dan iets wat je in een halfdonkere zaal niet leest. */
+  if (donkerScherm() ? l < 0.18 : l > 0.62) return '';
+  return h;
+}
+
+function showkop(){
+  var kl = zaalKleur(), tk = zaalTekstKleur();
+  var onder = [D.v, D.d].filter(Boolean).join(' · ');
+  return '<div class="hd"><div class="hl">'
+    + '<span class="sq"' + (kl ? ' style="background:' + esc(kl) + '"' : '') + '></span>'
+    + '<div style="min-width:0"><div class="band">' + esc(D.b) + '</div>'
+    + (onder ? '<div class="sub"' + (tk ? ' style="color:' + esc(tk) + '"' : '') + '>'
+        + esc(onder) + '</div>' : '')
+    + '</div></div>';
+}
+
 function kop(){
   var totaal = alleRegels().length, af = gedaan();
   var pct = totaal ? Math.round(af / totaal * 100) : 0;
-  return '<div class="kop"><div class="titel">'
-    + '<div class="band">' + esc(D.b) + '</div>'
-    + '<button type="button" class="stand" data-wissel="1">' + esc(standLabel(STAND))
-    + ' · ' + (D.m === 'in' ? 'in' : 'final') + '</button></div>'
-    + '<div class="meter"><span class="balk"><i style="width:' + pct + '%"></i></span>'
+  return '<div class="kop">' + showkop()
+    + '<button type="button" class="hr2" data-wissel="1" aria-label="Andere stand">'
+    + '<span class="stand">' + esc(standLabel(STAND)) + '</span>'
+    + '<span class="kind">' + (D.m === 'in' ? 'In count' : 'Final count') + '</span></button></div>'
+    + '<span class="balk"><i style="width:' + pct + '%"></i></span>'
     + '<span class="vorder">' + af + ' / ' + totaal
-    + (TELLER ? ' · ' + esc(TELLER) : '') + '</span></div></div>';
+    + (TELLER ? ' · ' + esc(TELLER) : '') + '</span></div>';
 }
 
 function teken(){
@@ -544,11 +601,12 @@ function teken(){
 /* ---- het aanmeldscherm -------------------------------------------------- */
 function poort(){
   var l = standLijst();
-  var h = '<div class="poort">'
-    + '<div class="shw">' + esc([D.v, D.d].filter(Boolean).join(' \u00b7 ')) + '</div>'
-    + '<div class="shwb">' + esc(D.b) + '</div>'
-    + '<div class="shwz">' + (D.m === 'in' ? 'In count' : 'Final count')
-    + (l ? '' : ' \u00b7 ' + esc(standLabel(STAND))) + '</div>'
+  var h = '<div class="kop">' + showkop()
+    + '<div class="hr2"><span class="stand">'
+    + (l ? (l.length + ' stands') : esc(standLabel(STAND)))
+    + '</span><span class="kind">' + (D.m === 'in' ? 'In count' : 'Final count')
+    + '</span></div></div></div>'
+    + '<div class="poort">'
     + '<p class="vraag">Je naam</p>'
     + '<p class="vraagbij">Komt bij de telling te staan, zodat duidelijk is wie wat geteld heeft.</p>'
     + '<input class="veld" id="naam" placeholder="Je naam" autocomplete="name"'
