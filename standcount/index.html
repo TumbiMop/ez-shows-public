@@ -80,8 +80,15 @@
   .artikel .terug svg{ width:21px; height:21px; display:block; }
   .artikel .terug:active{ background:var(--toetsdruk); }
   .artikel .terug:disabled{ opacity:.25; }
-  .artikel h1{ flex:1 1 auto; min-width:0; font-size:22px; font-weight:800; letter-spacing:-.02em;
-    line-height:1.12; margin:0; }
+  /* De naam is een knop naar het overzicht: bij vijftien artikelen wil je niet
+     vijftien keer op volgende tikken om bij de posters te komen. */
+  .artnaam{ flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:6px;
+    border:0; background:transparent; color:inherit; font:inherit; text-align:left;
+    padding:4px 7px; margin:0 -7px; border-radius:10px; }
+  .artnaam:active{ background:var(--toetsdruk); }
+  .artnaam svg{ flex:0 0 auto; width:15px; height:15px; color:var(--flauw); display:block; }
+  .artikel h1{ flex:0 1 auto; min-width:0; font-size:22px; font-weight:800; letter-spacing:-.02em;
+    line-height:1.12; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .artikel .teller{ flex:0 0 auto; font-size:11.5px; font-weight:600; color:var(--zacht); }
   .onder{ font-size:12px; color:var(--zacht); margin:0 0 9px; }
 
@@ -148,11 +155,14 @@
   .klavier .vorige{ font-size:13px; font-weight:700; color:var(--accent); gap:5px; }
   .klavier .vorige svg{ width:16px; height:16px; }
   .klavier .vorige:disabled{ opacity:.3; color:var(--zacht); }
-  .klavier .door{ grid-row:span 2; flex-direction:column; gap:3px;
+  /* height:auto is hier het hele punt: de toets staat over twee vakjes, maar met
+     de vaste 50px van .klavier button bleef hij er één vullen. Dit is de toets
+     die de hele avond ingedrukt wordt, dus die hoort de grootste te zijn. */
+  .klavier .door{ grid-row:span 2; height:auto; flex-direction:column; gap:5px;
     background:var(--accent); border-color:transparent; color:var(--opaccent);
-    font-size:12.5px; font-weight:700; line-height:1.15; text-align:center; padding:0 4px; }
+    font-size:13.5px; font-weight:700; line-height:1.15; text-align:center; padding:0 4px; }
   .klavier .door:active{ background:var(--accent); transform:scale(.97); filter:brightness(1.08); }
-  .klavier .door svg{ width:19px; height:19px; }
+  .klavier .door svg{ width:23px; height:23px; }
 
   /* ---- aanmelden ---------------------------------------------------------
      Eén link voor alle stands betekent dat de pagina niet weet wie hem opent.
@@ -186,6 +196,28 @@
   .chip.aan{ border-color:transparent; background:var(--accent); color:var(--opaccent); }
   .chip.aan i{ color:var(--opaccent); opacity:.85; }
   .rek{ flex:1 1 auto; min-height:14px; }
+
+  /* ---- het overzicht ---- */
+  .menubij{ font-size:13px; color:var(--zacht); margin:0 0 12px; }
+  .menurij{ display:flex; align-items:center; gap:11px; width:100%; min-height:52px;
+    padding:7px 9px; margin:0 -9px; border:0; background:transparent; color:inherit;
+    font:inherit; text-align:left; border-radius:10px; position:relative; }
+  .menurij + .menurij::before{ content:""; position:absolute; left:9px; right:9px; top:0;
+    height:1px; background:var(--lijn); }
+  .menurij:active{ background:var(--toetsdruk); }
+  .menurij.hier{ background:color-mix(in srgb, var(--accent) 13%, transparent); }
+  .menurij.hier::before, .menurij.hier + .menurij::before{ background:transparent; }
+  .mnr{ flex:0 0 24px; height:24px; border-radius:50%; background:var(--toetsdruk);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11.5px; font-weight:800; color:var(--zacht); }
+  .menurij.hier .mnr{ background:var(--accent); color:var(--opaccent); }
+  .mnm{ flex:1 1 auto; min-width:0; font-size:16px; font-weight:700;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .mnm small{ display:block; font-size:11px; font-weight:400; color:var(--zacht); }
+  .mvoort{ flex:0 0 auto; display:flex; align-items:center; gap:5px;
+    font-size:13px; font-weight:600; color:var(--flauw); font-variant-numeric:tabular-nums; }
+  .mvoort.af{ color:var(--goed); }
+  .mvoort svg{ width:16px; height:16px; display:block; }
 
   /* ---- slot ---- */
   .slot{ padding-bottom:10px; }
@@ -265,7 +297,7 @@ var D = null, ITEMS = [], STAP = 0, WAARDEN = {}, TELLER = '';
 
 /* Welke stand dit is, en of de poort nog open moet. Bij een link voor alle
    stands staat STAND op 0 tot iemand hem aantikt. */
-var STAND = 0, POORT = true;
+var STAND = 0, POORT = true, MENU = false;
 
 /* ---- de link uitpakken -------------------------------------------------- */
 function uitHash(){
@@ -448,19 +480,23 @@ function code(){
 }
 function bericht(){
   var kop = (D.m === 'in' ? 'In count' : 'Final count') + ' — ' + standLabel(STAND);
-  var regels = [kop, D.b + ' · ' + D.v + ' · ' + D.d, 'Geteld door: ' + (TELLER || '?'), ''];
-  ITEMS.forEach(function(p){
-    var stukken = [];
-    p.regels.forEach(function(r){
-      var v = WAARDEN[r.no];
-      if (v === undefined || v === '') return;
-      stukken.push((p.regels.length > 1 ? r.name + ' ' : '') + v);
-    });
-    if (stukken.length) regels.push(p.naam + ': ' + stukken.join(', '));
+  /* De artikelen stonden hier vroeger ook allemaal in. Dat is te veel tekst in
+     een WhatsApp-bericht en niemand leest het: de cijfers zitten al in de
+     coderegel, en die gaat de tool in. Wat blijft staan is wie, waar, en hoeveel
+     stuks in totaal — genoeg om in de zaal te zien dat er iets terugkwam. */
+  var som = 0;
+  alleRegels().forEach(function(r){
+    var v = WAARDEN[r.no];
+    if (v !== undefined && v !== '') som += parseInt(v, 10) || 0;
   });
-  regels.push('');
-  regels.push(code());
-  return regels.join('\n');
+  return [
+    kop,
+    D.b + ' · ' + D.v + ' · ' + D.d,
+    'Geteld door: ' + (TELLER || '?'),
+    'Totaal: ' + som + ' stuks',
+    '',
+    code()
+  ].join('\n');
 }
 
 /* ---- de iconen ---------------------------------------------------------- */
@@ -472,6 +508,10 @@ var IC = {
   terug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H6m5.5-6-6 6 6 6"/></svg>',
   vink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12.5 5.2 5.2L20 7"/></svg>',
   doos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12m0 9V12m9-4.5L12 12"/></svg>',
+  /* Een stevige chevron in plaats van een dun pijltje: op de grootste toets van
+     het scherm viel dat laatste in het niet. */
+  ga:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',
+  omlaag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>',
   stuur:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2.5 11 13"/><path d="M21.5 2.5 15 21.5l-4-8.5-8.5-4Z"/></svg>'
 };
 
@@ -495,6 +535,7 @@ function kop(){
 function teken(){
   var app = document.getElementById('app');
   if (POORT) app.innerHTML = poort();
+  else if (MENU) app.innerHTML = kop() + overzicht();
   else app.innerHTML = (STAP >= ITEMS.length) ? kop() + slot() : kop() + tellen();
   LANDT = null;
   koppel();
@@ -537,7 +578,8 @@ function tellen(){
   var h = '<div class="midden"><div class="artikel">'
     + '<button type="button" class="terug" data-vorigart="1" aria-label="Vorig artikel"'
     + (STAP === 0 ? ' disabled' : '') + '>' + IC.terug + '</button>'
-    + '<h1>' + esc(p.naam) + '</h1>'
+    + '<button type="button" class="artnaam" data-menu="1" aria-label="Alle artikelen">'
+    + '<h1>' + esc(p.naam) + '</h1>' + IC.omlaag + '</button>'
     + '<span class="teller">' + (STAP + 1) + ' / ' + ITEMS.length + '</span>'
     + '<button type="button" class="terug verder" data-volgart="1" aria-label="Volgend artikel"'
     + (STAP >= ITEMS.length - 1 ? ' disabled' : '') + '>' + IC.pijl + '</button></div>';
@@ -567,7 +609,8 @@ function klavier(){
   var p = ITEMS[STAP];
   var laatsteMaat = (MAAT >= p.regels.length - 1);
   var laatsteArt = (STAP >= ITEMS.length - 1);
-  var label = laatsteMaat ? (laatsteArt ? 'Naar het<br>slot' : 'Volgend<br>artikel') : 'Volgende<br>maat';
+  var klaar = (laatsteMaat && laatsteArt);
+  var label = klaar ? 'Klaar' : (laatsteMaat ? 'Volgend<br>artikel' : 'Volgende<br>maat');
   var h = '<div class="klavier">';
   var toets = function(n){ return '<button type="button" data-cijfer="' + n + '">' + n + '</button>'; };
   h += toets(1) + toets(2) + toets(3)
@@ -575,11 +618,36 @@ function klavier(){
     + toets(4) + toets(5) + toets(6)
     + '<button type="button" class="hulp" data-geen="1">geen</button>'
     + toets(7) + toets(8) + toets(9)
-    + '<button type="button" class="door" data-door="1">' + IC.pijl + '<span>' + label + '</span></button>'
+    + '<button type="button" class="door" data-door="1">' + (klaar ? IC.vink : IC.ga)
+    + '<span>' + label + '</span></button>'
     + '<button type="button" class="nul" data-cijfer="0">0</button>'
     + '<button type="button" class="vorige" data-vorige="1" aria-label="Vorige regel"'
     + (STAP === 0 && MAAT === 0 ? ' disabled' : '') + '>' + IC.terug + 'vorige</button>';
   return h + '</div>';
+}
+
+/* Alle artikelen onder elkaar, met hoever elk is. Bij vijftien artikelen wil je
+   niet vijftien keer op volgende tikken om bij de posters te komen — en aan het
+   eind wil je zien welk artikel nog openstaat zonder naar het slot te gaan. */
+function overzicht(){
+  var h = '<div class="midden"><h1 style="font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0 0 3px">Alle artikelen</h1>'
+    + '<p class="menubij">Tik er een aan om er meteen heen te gaan.</p>';
+  ITEMS.forEach(function(p, pi){
+    var af = p.regels.filter(function(r){
+      return WAARDEN[r.no] !== undefined && WAARDEN[r.no] !== '';
+    }).length;
+    var klaar = (af === p.regels.length);
+    h += '<button type="button" class="menurij' + (pi === STAP ? ' hier' : '')
+      + '" data-ganaar="' + pi + ':0">'
+      + '<span class="mnr">' + (pi + 1) + '</span>'
+      + '<span class="mnm">' + esc(p.naam)
+      + (p.band ? '<small>' + esc(p.band) + '</small>' : '') + '</span>'
+      + '<span class="mvoort' + (klaar ? ' af' : '') + '">' + af + ' / ' + p.regels.length
+      + (klaar ? IC.vink : '') + '</span></button>';
+  });
+  return h + '</div><div class="voet">'
+    + '<button type="button" class="knop stil" style="flex:1 1 auto" data-menuweg="1">'
+    + IC.terug + 'Terug naar tellen</button></div>';
 }
 
 function slot(){
@@ -702,7 +770,7 @@ function uitverkocht(){
   bewaar(); window.scrollTo(0, 0); teken();
 }
 function ganaar(pi, ri){
-  STAP = pi; MAAT = ri; VERS = null; ZEKER = false;
+  STAP = pi; MAAT = ri; VERS = null; ZEKER = false; MENU = false;
   window.scrollTo(0, 0); teken();
 }
 
@@ -711,7 +779,7 @@ function koppel(){
   var app = document.getElementById('app');
 
   app.onclick = function(e){
-    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-vorige],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],[data-volgart],[data-kies],[data-wissel],#start,#stuur');
+    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-vorige],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],[data-volgart],[data-menu],[data-menuweg],[data-kies],[data-wissel],#start,#stuur');
     if (!el || el.disabled) return;
     if (el.dataset.kies){
       var v = document.getElementById('naam');
@@ -736,6 +804,8 @@ function koppel(){
     if (el.dataset.uit) return uitverkocht();
     if (el.dataset.vorigart) return vorigArtikel();
     if (el.dataset.volgart) return volgendArtikel();
+    if (el.dataset.menu){ MENU = true; window.scrollTo(0, 0); return teken(); }
+    if (el.dataset.menuweg){ MENU = false; window.scrollTo(0, 0); return teken(); }
     if (el.dataset.terug) return ganaar(ITEMS.length - 1, 0);
     if (el.dataset.ganaar){
       var d = el.dataset.ganaar.split(':');
@@ -763,7 +833,7 @@ function koppel(){
 /* Op een laptop hoort een toetsenbord gewoon te werken. Op de telefoon komt er
    geen aan te pas — dit scherm heeft zijn eigen cijfers. */
 document.addEventListener('keydown', function(e){
-  if (!D || POORT || !ITEMS.length || STAP >= ITEMS.length) return;
+  if (!D || POORT || MENU || !ITEMS.length || STAP >= ITEMS.length) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   var a = document.activeElement;
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
