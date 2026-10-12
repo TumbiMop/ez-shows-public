@@ -50,8 +50,13 @@
   .kop .titel{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
   .band{ font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:-.01em;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .stand{ font-size:11.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-    color:var(--zacht); flex:0 0 auto; }
+  /* De stand is een knop: één link gaat naar alle stands, dus wie zich vergist
+     moet terug kunnen zonder de link opnieuw te vragen. */
+  .stand{ font-size:11.5px; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+    color:var(--zacht); flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis;
+    white-space:nowrap; border:0; background:transparent; font-family:inherit;
+    padding:3px 0 3px 8px; margin:-3px 0; }
+  .stand:active{ color:var(--accent); }
   .plaats{ font-size:11.5px; color:var(--zacht); margin-top:1px; }
   .balk{ height:4px; background:var(--lijn); border-radius:2px; margin-top:7px; overflow:hidden; }
   .balk i{ display:block; height:4px; width:0; background:var(--accent); transition:width .2s; }
@@ -142,6 +147,39 @@
   .klavier .door:active{ background:var(--accent); transform:scale(.97); filter:brightness(1.08); }
   .klavier .door svg{ width:19px; height:19px; }
 
+  /* ---- aanmelden ---------------------------------------------------------
+     Eén link voor alle stands betekent dat de pagina niet weet wie hem opent.
+     Daarom begint hij met twee vragen die niet overgeslagen kunnen worden. Een
+     telling zonder afzender is in de zaal onbruikbaar: dan weet je wel dat er
+     zeven hoodies liggen, maar niet waar. */
+  .poort{ flex:1 1 auto; overflow-y:auto; overscroll-behavior:contain;
+    padding:20px 16px 16px; display:flex; flex-direction:column; }
+  .shw{ font-size:11px; font-weight:800; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--zacht); }
+  .shwb{ font-size:23px; font-weight:800; letter-spacing:-.02em; line-height:1.1; margin:2px 0 1px; }
+  .shwz{ font-size:13px; color:var(--zacht); margin-bottom:18px; }
+  .vraag{ font-size:17px; font-weight:700; margin:0 0 3px; }
+  .vraagbij{ font-size:13px; color:var(--zacht); margin:0 0 11px; }
+  .veld{ width:100%; height:var(--raak); padding:0 14px; font-size:17px;
+    border:1px solid var(--lijn); border-radius:12px; background:var(--vlak); color:var(--inkt); }
+  .veld:focus{ outline:none; border-color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
+
+  /* Een raster, zoals de knoppen op de kassa. Bij dertien stands scrolt het
+     mee; de knop onderaan blijft staan. */
+  .chips{ display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .chip{ min-height:60px; border:1px solid var(--lijn); border-radius:12px;
+    background:var(--vlak); color:inherit; font:inherit; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:1px; padding:5px 4px; }
+  .chip b{ font-size:19px; font-weight:800; }
+  .chip i{ font-style:normal; font-size:10.5px; font-weight:600; color:var(--zacht);
+    text-align:center; line-height:1.15; max-width:100%; overflow:hidden;
+    text-overflow:ellipsis; white-space:nowrap; }
+  .chip:active{ background:var(--toetsdruk); }
+  .chip.aan{ border-color:transparent; background:var(--accent); color:var(--opaccent); }
+  .chip.aan i{ color:var(--opaccent); opacity:.85; }
+  .rek{ flex:1 1 auto; min-height:14px; }
+
   /* ---- slot ---- */
   .slot{ padding-bottom:10px; }
   .slot h1{ font-size:23px; font-weight:800; letter-spacing:-.02em; margin:0 0 10px; }
@@ -169,11 +207,10 @@
     padding:12px 8px 4px; margin:4px -8px 0; border-top:2px solid var(--lijn);
     font-size:17px; font-weight:800; }
   .somtotaal b{ font-variant-numeric:tabular-nums; }
-  .naam{ width:100%; height:var(--raak); font-size:17px; padding:0 14px; margin:16px 0 4px;
-    border:1px solid var(--lijn); border-radius:12px; background:var(--vlak);
-    color:var(--inkt); }
-  .naam:focus{ outline:none; border-color:var(--accent);
-    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+  /* De naam wordt niet meer onderaan gevraagd maar vooraan, en staat hier
+     alleen nog als ondertekening. */
+  .ondertekend{ font-size:13px; color:var(--zacht); margin:0 0 13px; }
+  .ondertekend b{ color:var(--inkt); }
 
   /* ---- voet ---- */
   .voet{ flex:0 0 auto; padding:9px 14px calc(12px + env(safe-area-inset-bottom));
@@ -215,6 +252,10 @@
 
 var D = null, ITEMS = [], STAP = 0, WAARDEN = {}, TELLER = '';
 
+/* Welke stand dit is, en of de poort nog open moet. Bij een link voor alle
+   stands staat STAND op 0 tot iemand hem aantikt. */
+var STAND = 0, POORT = true;
+
 /* ---- de link uitpakken -------------------------------------------------- */
 function uitHash(){
   var h = String(location.hash || '').replace(/^#/, '');
@@ -238,7 +279,10 @@ function uitHash(){
   try {
     var V = '\x01', R = '\x02', S = '\x03';
     var k = txt.split(V);
-    if (k[0] !== '1') return null;
+    /* 1 is de link per stand, 2 die voor alle stands samen. Allebei blijven
+       werken: een link die al in iemands WhatsApp staat hoort niet stuk te gaan
+       omdat de vorm veranderde. */
+    if (k[0] !== '1' && k[0] !== '2') return null;
     var d = {
       b: k[1], v: k[2],
       d: (k[3] && k[3].length === 8)
@@ -247,6 +291,13 @@ function uitHash(){
       s: k[4], n: k[5], m: (k[6] === 'I' ? 'in' : 'final'),
       c: k[7], w: k[8], t: null, r: []
     };
+    if (k[0] === '2'){
+      /* Veld 5 draagt dan niet één standnaam maar de hele lijst. Het vierde
+         scheidingsteken komt in geen enkele zaalnaam voor. */
+      d.stands = String(k[5] || '').split('\x04');
+      d.s = null; d.n = null;
+      if (!d.stands.length) return null;
+    }
     if (k[9]){
       d.t = {};
       k[9].split(',').forEach(function(p){
@@ -261,7 +312,9 @@ function uitHash(){
       var no = (v[0] === '') ? (vorig === null ? 0 : vorig + 1) : parseInt(v[0], 10);
       vorig = no;
       var kn = v[1] || '';
-      d.r.push([no, kn.slice(1), kn.charAt(0), (v[2] === '' || v[2] == null) ? null : parseInt(v[2], 10)]);
+      /* Rauw houden: bij een link voor alle stands staat hier niet één
+         lijstaantal maar dat van elke stand, met komma's ertussen. */
+      d.r.push([no, kn.slice(1), kn.charAt(0), (v[2] === '' || v[2] == null) ? null : String(v[2])]);
     });
     return d.r.length ? d : null;
   } catch (e){ return null; }
@@ -283,11 +336,66 @@ function groepeer(rows){
   return uit.filter(function(p){ return p.regels.length; });
 }
 
+/* ---- wie telt, en waar --------------------------------------------------
+   Eén link gaat naar alle stands. De pagina weet dus niet wie hem opent, en
+   vraagt dat voordat er geteld kan worden: je naam en je stand, allebei
+   verplicht. Een telling zonder afzender is in de zaal onbruikbaar — dan weet
+   je wel dat er zeven hoodies over zijn, maar niet waar ze liggen.
+
+   Wat je kiest blijft op deze telefoon staan. Wie de pagina kwijtraakt en
+   opnieuw opent, komt terug waar hij was en hoeft zich niet nog eens te
+   melden. */
+function standLijst(){
+  return (D.stands && D.stands.length) ? D.stands : null;
+}
+function standNaam(nr){
+  var l = standLijst();
+  var n = String((l ? l[nr-1] : D.n) || '').trim();
+  /* "Stand 3" als naam is geen naam: het nummer staat er al. */
+  return /^stand\s*\d+$/i.test(n) ? '' : n;
+}
+function standLabel(nr){
+  var n = standNaam(nr);
+  return 'Stand ' + nr + (n ? ' \u00b7 ' + n : '');
+}
+function klaar(){ return !!(String(TELLER).trim() && STAND); }
+
+function wieSleutel(){ return 'standcount.wie.' + D.c + '.' + D.d + '.' + D.m; }
+function wieBewaar(){
+  try { localStorage.setItem(wieSleutel(), JSON.stringify({ s:STAND, t:TELLER })); } catch (e){}
+}
+function wieTerug(){
+  try {
+    var x = JSON.parse(localStorage.getItem(wieSleutel()) || 'null');
+    if (!x || !x.t) return false;
+    var l = standLijst();
+    /* Alleen een link voor alle stands haalt de stand uit wat bewaard is. Een
+       link die zijn eigen stand meedraagt houdt die; anders stuurt een eerdere
+       keuze op deze telefoon de telling naar de verkeerde stand. */
+    if (l){
+      if (!(x.s >= 1 && x.s <= l.length)) return false;
+      STAND = +x.s;
+    }
+    TELLER = String(x.t);
+    return !!STAND;
+  } catch (e){}
+  return false;
+}
+
+/* De link draagt de lijstaantallen van álle stands. Pas als bekend is welke
+   stand dit is, valt er een kolom uit te kiezen. */
+function zetStand(nr){
+  STAND = nr;
+  D.r.forEach(function(r){
+    if (r.ins) r.in = (r.ins[nr-1] == null ? null : r.ins[nr-1]);
+  });
+}
+
 /* ---- bewaren ------------------------------------------------------------ */
 /* Bij elke toetsaanslag. Een lege accu of een verkeerde veeg mag geen avond
    tellen kosten. De sleutel hangt aan de show en de stand, zodat twee stands
    op dezelfde telefoon elkaar niet overschrijven. */
-function sleutel(){ return 'standcount.' + D.c + '.' + D.d + '.S' + D.s + '.' + D.m; }
+function sleutel(){ return 'standcount.' + D.c + '.' + D.d + '.S' + STAND + '.' + D.m; }
 function bewaar(){
   try { localStorage.setItem(sleutel(), JSON.stringify({ v:WAARDEN, t:TELLER, op:Date.now() })); }
   catch (e){}
@@ -295,7 +403,7 @@ function bewaar(){
 function haalTerug(){
   try {
     var x = JSON.parse(localStorage.getItem(sleutel()) || 'null');
-    if (x && x.v){ WAARDEN = x.v; TELLER = x.t || ''; return x.op || 0; }
+    if (x && x.v){ WAARDEN = x.v; if (!TELLER) TELLER = x.t || ''; return x.op || 0; }
   } catch (e){}
   return 0;
 }
@@ -324,11 +432,11 @@ function code(){
     var v = WAARDEN[r.no];
     if (v !== undefined && v !== '') paren.push(r.no + ':' + v);
   });
-  return 'SFM1|' + D.c + '|' + String(D.d).replace(/[^0-9]/g,'') + '|S' + D.s
+  return 'SFM1|' + D.c + '|' + String(D.d).replace(/[^0-9]/g,'') + '|S' + STAND
        + '|' + (D.m === 'in' ? 'IN' : 'FINAL') + '|' + (TELLER || '?') + '|' + paren.join(',');
 }
 function bericht(){
-  var kop = (D.m === 'in' ? 'In count' : 'Final count') + ' — Stand ' + D.s + ' (' + D.n + ')';
+  var kop = (D.m === 'in' ? 'In count' : 'Final count') + ' — ' + standLabel(STAND);
   var regels = [kop, D.b + ' · ' + D.v + ' · ' + D.d, 'Geteld door: ' + (TELLER || '?'), ''];
   ITEMS.forEach(function(p){
     var stukken = [];
@@ -366,16 +474,49 @@ function kop(){
   var pct = totaal ? Math.round(af / totaal * 100) : 0;
   return '<div class="kop"><div class="titel">'
     + '<div class="band">' + esc(D.b) + '</div>'
-    + '<div class="stand">Stand ' + esc(D.s) + ' · ' + (D.m === 'in' ? 'in' : 'final') + '</div></div>'
+    + '<button type="button" class="stand" data-wissel="1">' + esc(standLabel(STAND))
+    + ' · ' + (D.m === 'in' ? 'in' : 'final') + '</button></div>'
     + '<div class="meter"><span class="balk"><i style="width:' + pct + '%"></i></span>'
-    + '<span class="vorder">' + af + ' / ' + totaal + '</span></div></div>';
+    + '<span class="vorder">' + af + ' / ' + totaal
+    + (TELLER ? ' · ' + esc(TELLER) : '') + '</span></div></div>';
 }
 
 function teken(){
   var app = document.getElementById('app');
-  app.innerHTML = (STAP >= ITEMS.length) ? kop() + slot() : kop() + tellen();
+  if (POORT) app.innerHTML = poort();
+  else app.innerHTML = (STAP >= ITEMS.length) ? kop() + slot() : kop() + tellen();
   LANDT = null;
   koppel();
+}
+
+/* ---- het aanmeldscherm -------------------------------------------------- */
+function poort(){
+  var l = standLijst();
+  var h = '<div class="poort">'
+    + '<div class="shw">' + esc([D.v, D.d].filter(Boolean).join(' \u00b7 ')) + '</div>'
+    + '<div class="shwb">' + esc(D.b) + '</div>'
+    + '<div class="shwz">' + (D.m === 'in' ? 'In count' : 'Final count')
+    + (l ? '' : ' \u00b7 ' + esc(standLabel(STAND))) + '</div>'
+    + '<p class="vraag">Je naam</p>'
+    + '<p class="vraagbij">Komt bij de telling te staan, zodat duidelijk is wie wat geteld heeft.</p>'
+    + '<input class="veld" id="naam" placeholder="Je naam" autocomplete="name"'
+    + ' autocapitalize="words" value="' + esc(TELLER) + '">';
+
+  if (l){
+    h += '<p class="vraag" style="margin-top:18px">Je stand</p>'
+      + '<p class="vraagbij">Tik je eigen stand aan.</p><div class="chips">';
+    l.forEach(function(nm, i){
+      var nr = i + 1;
+      h += '<button type="button" class="chip' + (STAND === nr ? ' aan' : '')
+        + '" data-kies="' + nr + '"><b>' + nr + '</b><i>'
+        + esc(standNaam(nr) || ('stand ' + nr)) + '</i></button>';
+    });
+    h += '</div>';
+  }
+
+  return h + '<div class="rek"></div></div>'
+    + '<div class="voet"><button type="button" class="knop" id="start"'
+    + (klaar() ? '' : ' disabled') + '>Beginnen met tellen' + IC.pijl + '</button></div>';
 }
 
 function tellen(){
@@ -434,7 +575,9 @@ function slot(){
     });
   });
 
-  var h = '<div class="midden slot"><h1>Nakijken en versturen</h1>';
+  var h = '<div class="midden slot"><h1>Nakijken en versturen</h1>'
+    + '<p class="ondertekend">Geteld door <b>' + esc(TELLER) + '</b> \u00b7 '
+    + esc(standLabel(STAND)) + '</p>';
 
   if (open.length){
     h += '<div class="mist"><b>' + open.length + ' regel' + (open.length === 1 ? '' : 's')
@@ -466,8 +609,7 @@ function slot(){
   });
   h += '<div class="somtotaal"><span>Totaal stuks</span><b>' + som + '</b></div>';
 
-  h += '<input class="naam" id="teller" placeholder="Je naam" autocomplete="name" value="'
-    + esc(TELLER) + '"></div>';
+  h += '</div>';
 
   h += '<div class="voet">'
     + '<button type="button" class="knop stil" data-terug="1">' + IC.terug + 'Terug</button>'
@@ -534,8 +676,23 @@ function koppel(){
   var app = document.getElementById('app');
 
   app.onclick = function(e){
-    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],#stuur');
+    var el = e.target.closest('[data-cijfer],[data-wis],[data-geen],[data-door],[data-ga],[data-uit],[data-ganaar],[data-terug],[data-vorigart],[data-kies],[data-wissel],#start,#stuur');
     if (!el || el.disabled) return;
+    if (el.dataset.kies){
+      var v = document.getElementById('naam');
+      if (v) TELLER = v.value.trim();
+      STAND = +el.dataset.kies;
+      return teken();
+    }
+    if (el.id === 'start'){
+      var n = document.getElementById('naam');
+      if (n) TELLER = n.value.trim();
+      if (!klaar()) return;
+      return begin();
+    }
+    /* Terug naar de poort: wie op de verkeerde stand is begonnen hoeft de link
+       niet opnieuw te vragen. Wat al geteld is blijft per stand bewaard. */
+    if (el.dataset.wissel){ POORT = true; return teken(); }
     if (el.dataset.cijfer !== undefined) return cijfer(el.dataset.cijfer);
     if (el.dataset.wis) return wis();
     if (el.dataset.geen) return geen();
@@ -556,14 +713,20 @@ function koppel(){
     }
   };
 
-  var n = document.getElementById('teller');
-  if (n) n.addEventListener('input', function(){ TELLER = n.value.trim(); bewaar(); });
+  /* Niet opnieuw tekenen bij elke aanslag — dan springt de cursor uit het veld.
+     Alleen de knop onderaan gaat van grijs naar blauw. */
+  var nv = document.getElementById('naam');
+  if (nv) nv.addEventListener('input', function(){
+    TELLER = nv.value.trim();
+    var st = document.getElementById('start');
+    if (st) st.disabled = !klaar();
+  });
 }
 
 /* Op een laptop hoort een toetsenbord gewoon te werken. Op de telefoon komt er
    geen aan te pas — dit scherm heeft zijn eigen cijfers. */
 document.addEventListener('keydown', function(e){
-  if (!D || !ITEMS.length || STAP >= ITEMS.length) return;
+  if (!D || POORT || !ITEMS.length || STAP >= ITEMS.length) return;
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   var a = document.activeElement;
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
@@ -571,6 +734,40 @@ document.addEventListener('keydown', function(e){
   if (e.key === 'Backspace'){ e.preventDefault(); return wis(); }
   if (e.key === 'Enter'){ e.preventDefault(); return door(); }
 });
+
+/* ---- beginnen ------------------------------------------------------------
+   Van de poort naar de telling. Alleen als de stand verandert wordt er opnieuw
+   opgehaald: wie per ongeluk op de kop tikt en weer op Beginnen drukt, staat
+   terug bij het artikel waar hij was. */
+var GESTART = 0, OPGEHAALD = 0;
+function begin(){
+  POORT = false;
+  if (STAND !== GESTART){
+    GESTART = STAND;
+    zetStand(STAND);
+    WAARDEN = {}; STAP = 0; MAAT = 0; VERS = null; ZEKER = false;
+    OPGEHAALD = haalTerug();
+    /* Een link mag aantallen meebrengen. Dat is handig om een halve telling
+       door te sturen, en om een proef te doen zonder alles opnieuw in te
+       tikken. Wat op de telefoon zelf bewaard is wint: dat is nieuwer. */
+    if (D.t && !OPGEHAALD){
+      Object.keys(D.t).forEach(function(k){ WAARDEN[k] = String(D.t[k]); });
+      bewaar();
+    }
+  }
+  wieBewaar();
+  document.title = D.b + ' \u2014 ' + standLabel(STAND);
+  teken();
+  if (OPGEHAALD){
+    var el = document.createElement('div');
+    el.className = 'bewaard';
+    el.textContent = 'Je eerdere telling van ' + new Date(OPGEHAALD).toLocaleTimeString('nl-NL',
+      { hour:'2-digit', minute:'2-digit' }) + ' is teruggezet.';
+    var m = document.querySelector('.midden');
+    if (m) m.insertBefore(el, m.firstChild);
+    OPGEHAALD = 0;
+  }
+}
 
 /* ---- starten ------------------------------------------------------------ */
 (function(){
@@ -595,27 +792,24 @@ document.addEventListener('keydown', function(e){
       + '— een link die halverwege is afgeknipt doet het niet.</p></div>';
     return;
   }
-  D.r = D.r.map(function(a){ return { no:a[0], name:a[1], kind:a[2], in:a[3] }; });
+  D.r = D.r.map(function(a){
+    var r = { no:a[0], name:a[1], kind:a[2], in:null };
+    if (a[3] != null && a[3] !== ''){
+      if (D.stands) r.ins = String(a[3]).split(',').map(function(x){ return parseInt(x, 10) || 0; });
+      else r.in = parseInt(a[3], 10);
+    }
+    return r;
+  });
   ITEMS = groepeer(D.r);
-  document.title = D.b + ' — Stand ' + D.s;
+  document.title = D.b + ' — Stand Count';
 
-  var op = haalTerug();
-  /* Een link mag aantallen meebrengen. Dat is handig om een halve telling door
-     te sturen, en om een proef te doen zonder alles opnieuw in te tikken. Wat
-     op de telefoon zelf bewaard is wint: dat is nieuwer dan de link. */
-  if (D.t && !op){
-    Object.keys(D.t).forEach(function(k){ WAARDEN[k] = String(D.t[k]); });
-    bewaar();
-  }
-  teken();
-  if (op){
-    var el = document.createElement('div');
-    el.className = 'bewaard';
-    el.textContent = 'Je eerdere telling van ' + new Date(op).toLocaleTimeString('nl-NL',
-      { hour:'2-digit', minute:'2-digit' }) + ' is teruggezet.';
-    var m = document.querySelector('.midden');
-    if (m) m.insertBefore(el, m.firstChild);
-  }
+  /* Een link van de oude soort draagt zijn eigen stand mee; dan staat die vast
+     en hoeft alleen de naam nog gevraagd te worden. */
+  if (!standLijst()) STAND = parseInt(D.s, 10) || 0;
+
+  /* Wie zich op deze telefoon al gemeld heeft gaat meteen door. */
+  if (wieTerug()) begin();
+  else teken();
 })();
 </script>
 </body>
