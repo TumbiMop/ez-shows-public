@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -286,7 +286,7 @@
 </style>
 </head>
 <body>
-<div class="scherm" id="app"><div class="stuk">Even laden…</div></div>
+<div class="scherm" id="app"><div class="stuk">Loading…</div></div>
 
 
 
@@ -373,7 +373,11 @@ function uitHash(){
       var kn = v[1] || '';
       /* Rauw houden: bij een link voor alle stands staat hier niet één
          lijstaantal maar dat van elke stand, met komma's ertussen. */
-      d.r.push([no, kn.slice(1), kn.charAt(0), (v[2] === '' || v[2] == null) ? null : String(v[2])]);
+      /* Het soort is één teken; 'b' is een bandkop. Dat stond er vroeger voluit
+         als "band", en dan werd het hier een artikel met de naam "and...". */
+      var soort = kn.charAt(0);
+      d.r.push([no, kn.slice(1), soort === 'b' ? 'band' : soort,
+                (v[2] === '' || v[2] == null) ? null : String(v[2])]);
     });
     return d.r.length ? d : null;
   } catch (e){ return null; }
@@ -508,8 +512,8 @@ function bericht(){
   return [
     kop,
     D.b + ' · ' + D.v + ' · ' + D.d,
-    'Geteld door: ' + (TELLER || '?'),
-    'Totaal: ' + som + ' stuks',
+    'Counted by: ' + (TELLER || '?'),
+    'Total: ' + som + ' items',
     '',
     code()
   ].join('\n');
@@ -581,7 +585,7 @@ function kop(){
   var totaal = alleRegels().length, af = gedaan();
   var pct = totaal ? Math.round(af / totaal * 100) : 0;
   return '<div class="kop">' + showkop()
-    + '<button type="button" class="hr2" data-wissel="1" aria-label="Andere stand">'
+    + '<button type="button" class="hr2" data-wissel="1" aria-label="Change stand">'
     + '<span class="stand">' + esc(standLabel(STAND)) + '</span>'
     + '<span class="kind">' + (D.m === 'in' ? 'In count' : 'Final count') + '</span></button></div>'
     + '<span class="balk"><i style="width:' + pct + '%"></i></span>'
@@ -607,14 +611,14 @@ function poort(){
     + '</span><span class="kind">' + (D.m === 'in' ? 'In count' : 'Final count')
     + '</span></div></div></div>'
     + '<div class="poort">'
-    + '<p class="vraag">Je naam</p>'
-    + '<p class="vraagbij">Komt bij de telling te staan, zodat duidelijk is wie wat geteld heeft.</p>'
-    + '<input class="veld" id="naam" placeholder="Je naam" autocomplete="name"'
+    + '<p class="vraag">Your name</p>'
+    + '<p class="vraagbij">This goes with the count, so it is clear who counted what.</p>'
+    + '<input class="veld" id="naam" placeholder="Your name" autocomplete="name"'
     + ' autocapitalize="words" value="' + esc(TELLER) + '">';
 
   if (l){
-    h += '<p class="vraag" style="margin-top:18px">Je stand</p>'
-      + '<p class="vraagbij">Tik je eigen stand aan.</p><div class="chips">';
+    h += '<p class="vraag" style="margin-top:18px">Your stand</p>'
+      + '<p class="vraagbij">Tap your own stand.</p><div class="chips">';
     l.forEach(function(nm, i){
       var nr = i + 1;
       h += '<button type="button" class="chip' + (STAND === nr ? ' aan' : '')
@@ -626,7 +630,7 @@ function poort(){
 
   return h + '<div class="rek"></div></div>'
     + '<div class="voet"><button type="button" class="knop" id="start"'
-    + (klaar() ? '' : ' disabled') + '>Beginnen met tellen' + IC.pijl + '</button></div>';
+    + (klaar() ? '' : ' disabled') + '>Start counting' + IC.pijl + '</button></div>';
 }
 
 function tellen(){
@@ -634,12 +638,12 @@ function tellen(){
   if (MAAT >= p.regels.length) MAAT = 0;
 
   var h = '<div class="midden"><div class="artikel">'
-    + '<button type="button" class="terug" data-vorigart="1" aria-label="Vorig artikel"'
+    + '<button type="button" class="terug" data-vorigart="1" aria-label="Previous item"'
     + (STAP === 0 ? ' disabled' : '') + '>' + IC.terug + '</button>'
-    + '<button type="button" class="artnaam" data-menu="1" aria-label="Alle artikelen">'
+    + '<button type="button" class="artnaam" data-menu="1" aria-label="All items">'
     + '<h1>' + esc(p.naam) + '</h1>' + IC.omlaag + '</button>'
     + '<span class="teller">' + (STAP + 1) + ' / ' + ITEMS.length + '</span>'
-    + '<button type="button" class="terug verder" data-volgart="1" aria-label="Volgend artikel"'
+    + '<button type="button" class="terug verder" data-volgart="1" aria-label="Next item"'
     + (STAP >= ITEMS.length - 1 ? ' disabled' : '') + '>' + IC.pijl + '</button></div>';
   if (p.band) h += '<p class="onder">' + esc(p.band) + '</p>';
 
@@ -648,18 +652,18 @@ function tellen(){
     var af = v !== undefined && v !== '';
     h += '<button type="button" class="regel' + (i === MAAT ? ' hier' : '')
       + (LANDT === i ? ' landt' : '') + '" data-ga="' + i + '"'
-      + ' aria-label="' + esc(p.regels.length > 1 ? r.name : 'Aantal')
-      + (af ? ', ' + esc(v) + ' geteld' : ', nog niet geteld') + '">'
-      + '<span class="maat">' + esc(p.regels.length > 1 ? r.name : 'Aantal')
-      + (D.m === 'in' && r.in ? '<small>volgens de lijst ' + r.in + '</small>' : '')
+      + ' aria-label="' + esc(p.regels.length > 1 ? r.name : 'Quantity')
+      + (af ? ', ' + esc(v) + ' counted' : ', not counted yet') + '">'
+      + '<span class="maat">' + esc(p.regels.length > 1 ? r.name : 'Quantity')
+      + (D.m === 'in' && r.in ? '<small>list says ' + r.in + '</small>' : '')
       + '</span>'
       + '<span class="waarde ' + (af ? 'af' : 'leeg') + '">' + (af ? esc(v) : '–') + '</span>'
       + '<span class="vink' + (af ? ' aan' : '') + '">' + IC.vink + '</span></button>';
   });
 
   h += '<button type="button" class="uitverkocht' + (ZEKER ? ' zeker' : '') + '" data-uit="1">'
-    + (ZEKER ? 'Zeker weten? Tik nog eens — alles wordt 0'
-             : IC.doos + 'Alles uitverkocht') + '</button></div>';
+    + (ZEKER ? 'Sure? Tap again — everything becomes 0'
+             : IC.doos + 'All sold out') + '</button></div>';
   return h + klavier();
 }
 
@@ -668,19 +672,19 @@ function klavier(){
   var laatsteMaat = (MAAT >= p.regels.length - 1);
   var laatsteArt = (STAP >= ITEMS.length - 1);
   var klaar = (laatsteMaat && laatsteArt);
-  var label = klaar ? 'Klaar' : (laatsteMaat ? 'Volgend<br>artikel' : 'Volgende<br>maat');
+  var label = klaar ? 'Done' : (laatsteMaat ? 'Next<br>item' : 'Next<br>size');
   var h = '<div class="klavier">';
   var toets = function(n){ return '<button type="button" data-cijfer="' + n + '">' + n + '</button>'; };
   h += toets(1) + toets(2) + toets(3)
-    + '<button type="button" data-wis="1" aria-label="Laatste cijfer wissen">' + IC.wis + '</button>'
+    + '<button type="button" data-wis="1" aria-label="Delete last digit">' + IC.wis + '</button>'
     + toets(4) + toets(5) + toets(6)
-    + '<button type="button" class="hulp" data-geen="1">geen</button>'
+    + '<button type="button" class="hulp" data-geen="1">none</button>'
     + toets(7) + toets(8) + toets(9)
     + '<button type="button" class="door" data-door="1">' + (klaar ? IC.vink : IC.ga)
     + '<span>' + label + '</span></button>'
     + '<button type="button" class="nul" data-cijfer="0">0</button>'
-    + '<button type="button" class="vorige" data-vorige="1" aria-label="Vorige regel"'
-    + (STAP === 0 && MAAT === 0 ? ' disabled' : '') + '>' + IC.terug + 'vorige</button>';
+    + '<button type="button" class="vorige" data-vorige="1" aria-label="Previous line"'
+    + (STAP === 0 && MAAT === 0 ? ' disabled' : '') + '>' + IC.terug + 'back</button>';
   return h + '</div>';
 }
 
@@ -688,8 +692,8 @@ function klavier(){
    niet vijftien keer op volgende tikken om bij de posters te komen — en aan het
    eind wil je zien welk artikel nog openstaat zonder naar het slot te gaan. */
 function overzicht(){
-  var h = '<div class="midden"><h1 style="font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0 0 3px">Alle artikelen</h1>'
-    + '<p class="menubij">Tik er een aan om er meteen heen te gaan.</p>';
+  var h = '<div class="midden"><h1 style="font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0 0 3px">All items</h1>'
+    + '<p class="menubij">Tap one to jump straight there.</p>';
   ITEMS.forEach(function(p, pi){
     var af = p.regels.filter(function(r){
       return WAARDEN[r.no] !== undefined && WAARDEN[r.no] !== '';
@@ -705,7 +709,7 @@ function overzicht(){
   });
   return h + '</div><div class="voet">'
     + '<button type="button" class="knop stil" style="flex:1 1 auto" data-menuweg="1">'
-    + IC.terug + 'Terug naar tellen</button></div>';
+    + IC.terug + 'Back to counting</button></div>';
 }
 
 function slot(){
@@ -716,19 +720,19 @@ function slot(){
     });
   });
 
-  var h = '<div class="midden slot"><h1>Nakijken en versturen</h1>'
-    + '<p class="ondertekend">Geteld door <b>' + esc(TELLER) + '</b> \u00b7 '
+  var h = '<div class="midden slot"><h1>Check and send</h1>'
+    + '<p class="ondertekend">Counted by <b>' + esc(TELLER) + '</b> \u00b7 '
     + esc(standLabel(STAND)) + '</p>';
 
   if (open.length){
-    h += '<div class="mist"><b>' + open.length + ' regel' + (open.length === 1 ? '' : 's')
-      + ' nog niet geteld</b><p>Een leeg vakje is dubbelzinnig: is het nul, of '
-      + 'overgeslagen? Vul ook de nullen in.</p>';
+    h += '<div class="mist"><b>' + open.length + ' line' + (open.length === 1 ? '' : 's')
+      + ' not counted yet</b><p>An empty box is ambiguous: is it zero, or did you '
+      + 'skip it? Fill in the zeros too.</p>';
     open.slice(0, 6).forEach(function(o){
       h += '<button type="button" data-ganaar="' + o.pi + ':' + o.ri + '">' + esc(o.p.naam)
         + (o.p.regels.length > 1 ? ' · ' + esc(o.r.name) : '') + ' &rsaquo;</button>';
     });
-    if (open.length > 6) h += '<p style="margin:9px 0 0">en nog ' + (open.length - 6) + '</p>';
+    if (open.length > 6) h += '<p style="margin:9px 0 0">and ' + (open.length - 6) + ' more</p>';
     h += '</div>';
   }
 
@@ -746,18 +750,18 @@ function slot(){
       var d = (D.m === 'in' && r.in != null) ? (parseInt(v, 10) || 0) - r.in : 0;
       h += '<button type="button" class="somrij" data-ganaar="' + pi + ':' + ri + '">'
         + '<span>' + esc(p.naam) + (p.regels.length > 1 ? ' · ' + esc(r.name) : '')
-        + (d ? '<small>volgens de lijst ' + r.in + ' — ' + Math.abs(d)
-               + (d > 0 ? ' meer' : ' minder') + ' geteld</small>' : '') + '</span>'
+        + (d ? '<small>list says ' + r.in + ' — ' + Math.abs(d)
+               + (d > 0 ? ' more' : ' fewer') + ' counted</small>' : '') + '</span>'
         + '<b>' + esc(v) + '</b></button>';
     });
   });
-  h += '<div class="somtotaal"><span>Totaal stuks</span><b>' + som + '</b></div>';
+  h += '<div class="somtotaal"><span>Total items</span><b>' + som + '</b></div>';
 
   h += '</div>';
 
   h += '<div class="voet">'
-    + '<button type="button" class="knop stil" data-terug="1">' + IC.terug + 'Terug</button>'
-    + '<button type="button" class="knop" id="stuur">' + IC.stuur + 'Versturen</button></div>';
+    + '<button type="button" class="knop stil" data-terug="1">' + IC.terug + 'Back</button>'
+    + '<button type="button" class="knop" id="stuur">' + IC.stuur + 'Send</button></div>';
   return h;
 }
 
@@ -927,8 +931,8 @@ function begin(){
   if (OPGEHAALD){
     var el = document.createElement('div');
     el.className = 'bewaard';
-    el.textContent = 'Je eerdere telling van ' + new Date(OPGEHAALD).toLocaleTimeString('nl-NL',
-      { hour:'2-digit', minute:'2-digit' }) + ' is teruggezet.';
+    el.textContent = 'Your earlier count from ' + new Date(OPGEHAALD).toLocaleTimeString('en-GB',
+      { hour:'2-digit', minute:'2-digit' }) + ' has been restored.';
     var m = document.querySelector('.midden');
     if (m) m.insertBefore(el, m.firstChild);
     OPGEHAALD = 0;
@@ -945,17 +949,17 @@ function begin(){
      onderweg stukgegaan. */
   if (D === 'leeg'){
     document.getElementById('app').innerHTML =
-      '<div class="stuk"><h1>Deze pagina is leeg</h1>'
-      + '<p>Dat hoort zo. Hier staat niets over een show — die komt mee in de '
-      + 'link die je per WhatsApp krijgt.</p>'
-      + '<p style="margin-top:18px">Open de link uit het bericht, niet dit adres.</p></div>';
+      '<div class="stuk"><h1>This page is empty</h1>'
+      + '<p>That is how it should be. Nothing about a show lives here — the show '
+      + 'travels inside the link you get over WhatsApp.</p>'
+      + '<p style="margin-top:18px">Open the link from the message, not this address.</p></div>';
     return;
   }
   if (!D || !D.r || !D.r.length){
     document.getElementById('app').innerHTML =
-      '<div class="stuk"><h1>Deze link is niet compleet</h1>'
-      + '<p>Vraag of hij nog een keer gestuurd wordt. Kopieer hem helemaal '
-      + '— een link die halverwege is afgeknipt doet het niet.</p></div>';
+      '<div class="stuk"><h1>This link is not complete</h1>'
+      + '<p>Ask for it to be sent again, and copy the whole thing — a link that '
+      + 'got cut off halfway does not work.</p></div>';
     return;
   }
   D.r = D.r.map(function(a){
