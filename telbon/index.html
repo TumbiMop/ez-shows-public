@@ -460,6 +460,77 @@ input,textarea{ caret-color:var(--oranje-diep); }
 .ctrlwrap.anders .merk{ color:var(--stempel); }
 .ctrlwrap.anders .wat small{ color:var(--stempel); }
 
+/* ===========================================================================
+   HET AFDRUKVEL — de sales-PDF
+
+   Dit is het enige stuk van de app dat op papier terechtkomt, en het gaat naar
+   iemand die er niet bij was. Dus geen kleur, geen schermvorm, geen knoppen:
+   zwarte inkt op wit, de cijfers in kolommen, en de twee handtekeningen eronder
+   zoals ze gezet zijn. Een telefoon maakt hier met Delen > Afdrukken een PDF van.
+
+   Er wordt met opzet niets weggelaten wat ongemakkelijk is. Een regel die
+   niemand heeft nagekeken, een doos die onderweg is bijgesteld, een kas die
+   niet uitkomt: die staan er allemaal op. Een verklaring die alleen de goede
+   avonden vastlegt is geen verklaring.
+   =========================================================================== */
+.afdruk{ display:none; }
+
+@media print{
+  @page{ size:A4; margin:14mm 13mm 12mm; }
+  html,body{ background:#fff !important; color:#000 !important; }
+  .scherm,.indexknop{ display:none !important; }
+  .afdruk{ display:block !important; color:#000; font-size:9.5pt; line-height:1.35; }
+  .afdruk *{ color:#000 !important; }
+
+  .pr-kop{ display:flex; justify-content:space-between; align-items:flex-start;
+    gap:10mm; border-bottom:1.6pt solid #000; padding-bottom:3mm; }
+  .pr-kop h1{ font-size:17pt; font-weight:800; letter-spacing:-.01em; margin:0 0 1mm; }
+  .pr-kop .pr-wie{ font-size:10pt; font-weight:600; margin:0; }
+  .pr-kop .pr-sub{ font-size:9pt; margin:.6mm 0 0; }
+  .pr-nr{ text-align:right; font-size:8.5pt; white-space:nowrap; }
+  .pr-nr b{ display:block; font-size:11pt; }
+
+  .pr-let{ margin:4mm 0 0; padding:2.5mm 3mm; border:1.2pt solid #000; font-size:9pt; }
+  .pr-let b{ display:block; font-size:9.5pt; margin-bottom:1mm; }
+  .pr-let p{ margin:0 0 1mm; }
+  .pr-let p:last-child{ margin-bottom:0; }
+
+  .afdruk h2{ font-size:8.5pt; font-weight:800; letter-spacing:.12em; text-transform:uppercase;
+    margin:6mm 0 2mm; padding-bottom:1mm; border-bottom:.6pt solid #000; }
+  table.pr-tab{ width:100%; border-collapse:collapse; font-size:9pt; }
+  table.pr-tab th{ text-align:left; font-size:7.5pt; letter-spacing:.09em; text-transform:uppercase;
+    font-weight:700; padding:0 0 1.2mm; border-bottom:.6pt solid #000; }
+  table.pr-tab td{ padding:1.1mm 0; border-bottom:.3pt solid #999; }
+  table.pr-tab th.n,table.pr-tab td.n{ text-align:right; padding-left:5mm;
+    font-variant-numeric:tabular-nums; }
+  table.pr-tab tr.pr-kopregel td{ font-weight:700; border-bottom:.6pt solid #000; padding-top:2mm; }
+  table.pr-tab tr.pr-enkel td:first-child{ font-weight:700; }
+  table.pr-tab tfoot td{ font-weight:700; border-top:1.2pt solid #000; border-bottom:0;
+    padding-top:1.6mm; }
+
+  .pr-som{ margin:5mm 0 0; border:1.2pt solid #000; }
+  .pr-rij{ display:flex; justify-content:space-between; align-items:baseline; gap:8mm;
+    padding:2mm 3mm; font-size:10pt; }
+  .pr-rij + .pr-rij{ border-top:.4pt solid #999; }
+  .pr-rij b{ font-variant-numeric:tabular-nums; font-size:11pt; }
+  .pr-rij.pr-slot{ border-top:1.2pt solid #000; font-weight:800; font-size:11pt; }
+  .pr-rij.pr-slot b{ font-size:14pt; }
+  .pr-rij small{ display:block; font-size:8pt; font-weight:400; }
+
+  .pr-namen{ display:flex; gap:6mm; margin-top:5mm; page-break-inside:avoid; }
+  .pr-naam{ flex:1 1 0; }
+  .pr-naam .pr-lab{ font-size:7.5pt; letter-spacing:.09em; text-transform:uppercase; font-weight:700; }
+  .pr-naam .pr-krab{ height:17mm; border-bottom:.8pt solid #000; margin-top:1mm;
+    display:flex; align-items:flex-end; }
+  .pr-naam .pr-krab img{ max-height:16mm; max-width:100%; object-fit:contain;
+    object-position:left bottom; }
+  .pr-naam .pr-wieis{ font-size:9.5pt; font-weight:700; margin-top:1mm; }
+  .pr-naam .pr-toen{ font-size:8pt; }
+  .pr-voet{ margin-top:6mm; padding-top:2mm; border-top:.4pt solid #999; font-size:7.5pt; }
+  .pr-voet code{ font-family:ui-monospace,Menlo,monospace; font-size:6.5pt;
+    word-break:break-all; display:block; margin-top:1mm; }
+}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important;
     transition-duration:.001ms !important; }
@@ -468,6 +539,7 @@ input,textarea{ caret-color:var(--oranje-diep); }
 
 <body>
 <div class="scherm" id="app"></div>
+<div class="afdruk" id="afdruk" aria-hidden="true"></div>
 <script>
 /* ===========================================================================
    De telbon, strakke versie — zelfde keten, Ziggo Dome-kleuren
@@ -512,6 +584,7 @@ var IC = {
   oog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
   cirkel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>',
   euro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 6.5A6.5 6.5 0 0 0 7 12a6.5 6.5 0 0 0 10 5.5"/><path d="M4.5 10.5h8M4.5 14h8"/></svg>',
+  blad:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>',
   link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M14 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1"/></svg>'
 };
 
@@ -1276,9 +1349,9 @@ function schermBon(){
   } else if (!S.afsluiting){
     h += '<button type="button" class="knop" data-ga="teken-afsluiting">' + IC.pen + 'Bon afsluiten</button>';
   } else {
-    h += '<button type="button" class="knop' + (S.verzonden ? ' laadknop' : '') + '" data-stuur="1">'
-      + (S.verzonden ? IC.draai.replace('<svg', '<svg class="spin"') + 'Versturen\u2026'
-         : IC.stuur + 'Terugsturen naar de crew') + '</button>';
+    h += '<button type="button" class="knop stil krimp" data-stuur="1" aria-label="Samenvatting via WhatsApp">'
+      + IC.stuur + '</button>'
+      + '<button type="button" class="knop" data-pdf="1">' + IC.blad + 'Sales-PDF maken</button>';
   }
   return h + '</div>';
 }
@@ -1414,6 +1487,167 @@ function coderegel(){
     + '|' + initialen(BON.crew) + '/' + initialen(S.ziggo);
 }
 
+/* ---- het afdrukvel ------------------------------------------------------
+   Eén A4 dat naar iemand gaat die er niet bij was. Wat erop moet staan is niet
+   "de verkoop", maar: wat er in de doos ging, wat eruit kwam, wat de kassa
+   ervan zag, waar dat uiteenloopt, en wie daarvoor getekend heeft. In die
+   volgorde, want zo leest iemand het na die er iets van moet vinden.
+
+   De ongemakkelijke dingen staan bovenaan en niet in een voetnoot: een regel
+   die niemand heeft nagekeken, een doos die onderweg is bijgesteld, een bon
+   die nog niet getekend is. Een verklaring die alleen de goede avonden
+   vastlegt is geen verklaring. */
+/* Een artikel met maten krijgt een kopregel en daaronder een regel per maat.
+   Een artikel zonder maten \u2014 een mok, een plaat \u2014 krijgt \u00e9\u00e9n regel met de naam
+   erin. Twee regels voor \u00e9\u00e9n mok is de vorm van het bestand opleggen aan de
+   lezer, en die leest geen bestand maar een bon. */
+function afdrukRegels(){
+  var uit = [];
+  artenMee().forEach(function(a){
+    var rr = a.regels.filter(function(r){ return meeW(r.no) > 0; });
+    if (!rr.length) return;
+    var vorm = function(r){
+      var u = uitW(r.no), t = terW(r.no);
+      return { uit:u, terug:t, verkocht:(u === null || t === null) ? null : u - t, prijs:a.prijs,
+        gewijzigd:S.WIJZ.some(function(w){ return w.no === r.no; }),
+        ongezien:!S.GEZIEN[r.no] };
+    };
+    if (rr.length === 1){
+      var e = vorm(rr[0]);
+      e.kop = false; e.naam = a.naam; e.sub = a.sub; e.maat = '';
+      uit.push(e);
+      return;
+    }
+    uit.push({ kop:true, naam:a.naam, sub:a.sub, prijs:a.prijs });
+    rr.forEach(function(r){
+      var x = vorm(r);
+      x.kop = false; x.maat = r.maat;
+      uit.push(x);
+    });
+  });
+  return uit;
+}
+
+function afdrukvel(){
+  var g = geldTelling(), omz = omzetMplus(), kv = kasVerschil();
+  var tu = totaal(uitW), tt = totaal(terW);
+  var o = ongezien().length;
+  var rond = !!S.afsluiting;
+
+  var h = '<div class="pr-kop"><div>'
+    + '<h1>Sales \u2014 ' + esc(S.ruimte) + '</h1>'
+    + '<p class="pr-wie">' + esc(BON.show) + (BON.zaal ? ' \u00b7 ' + esc(BON.zaal) : '') + '</p>'
+    + '<p class="pr-sub">' + esc(BON.datum) + ' \u00b7 in consignatie, afgerekend op de avond zelf</p>'
+    + '</div><div class="pr-nr"><b>' + esc(BON.nr) + '</b>'
+    + (rond ? 'gesloten ' + esc(tijd(S.afsluiting.tijd)) : 'niet ondertekend')
+    + '</div></div>';
+
+  /* Eerst wat er niet klopt, als er iets niet klopt. */
+  var let_ = [];
+  if (!rond) let_.push('Deze bon is nog niet door beide partijen ondertekend. '
+    + 'Zonder die twee handtekeningen is dit een tussenstand, geen afrekening.');
+  if (o) let_.push(o + (o === 1 ? ' regel is' : ' regels zijn') + ' bij ontvangst nooit nageteld. '
+    + 'Daar is het aantal van de crew overgenomen; ontbrak daar iets, dan staat het nu als verkocht.');
+  S.WIJZ.forEach(function(w){
+    var r = regel(w.no), a = art(r.art);
+    let_.push((w.soort === 'aanvulling' ? 'Later bijgekomen' : 'Anders in de doos')
+      + ' om ' + tijd(w.tijd) + ': ' + a.naam + (a.maten.length > 1 ? ' \u00b7 ' + r.maat : '')
+      + ' ging van ' + w.van + ' naar ' + w.naar + ', vastgelegd door ' + w.door
+      + (w.gemeld ? ', gemeld aan de crew om ' + tijd(w.gemeld) : ', niet gemeld aan de crew') + '.');
+  });
+  if (let_.length){
+    h += '<div class="pr-let"><b>Let op bij het lezen</b>';
+    let_.forEach(function(t){ h += '<p>' + esc(t) + '</p>'; });
+    h += '</div>';
+  }
+
+  /* De regels. */
+  h += '<h2>Per artikel</h2><table class="pr-tab"><thead><tr>'
+    + '<th>Artikel</th><th class="n">Prijs</th><th class="n">In de doos</th>'
+    + '<th class="n">Terug</th><th class="n">Verkocht</th><th class="n">Waarde</th>'
+    + '</tr></thead><tbody>';
+  afdrukRegels().forEach(function(r){
+    if (r.kop){
+      h += '<tr class="pr-kopregel"><td colspan="2">' + esc(r.naam)
+        + (r.sub ? ' \u00b7 ' + esc(r.sub) : '') + '</td>'
+        + '<td colspan="4"></td></tr>';
+      return;
+    }
+    h += '<tr' + (r.naam ? ' class="pr-enkel"' : '') + '><td>'
+      + esc(r.naam ? r.naam + (r.sub ? ' \u00b7 ' + r.sub : '') : r.maat)
+      + (r.gewijzigd ? ' *' : '')
+      + (r.ongezien ? ' \u2020' : '') + '</td>'
+      + '<td class="n">' + eur(r.prijs) + '</td>'
+      + '<td class="n">' + (r.uit === null ? '\u2013' : r.uit) + '</td>'
+      + '<td class="n">' + (r.terug === null ? '\u2013' : r.terug) + '</td>'
+      + '<td class="n">' + (r.verkocht === null ? '\u2013' : r.verkocht) + '</td>'
+      + '<td class="n">' + (r.verkocht === null ? '\u2013' : eur(r.verkocht * r.prijs)) + '</td></tr>';
+  });
+  h += '</tbody><tfoot><tr><td colspan="2">Samen</td>'
+    + '<td class="n">' + tu + '</td><td class="n">' + tt + '</td>'
+    + '<td class="n">' + (tu - tt) + '</td>'
+    + '<td class="n">' + (g.gat ? '\u2013' : eur(g.bedrag)) + '</td></tr></tfoot></table>';
+  if (S.WIJZ.length || o){
+    h += '<p style="font-size:7.5pt;margin:1.5mm 0 0">'
+      + (S.WIJZ.length ? '* aantal onderweg bijgesteld. ' : '')
+      + (o ? '\u2020 bij ontvangst niet nageteld.' : '') + '</p>';
+  }
+
+  /* En dan het geld, want daar gaat het om. */
+  h += '<h2>De afrekening</h2><div class="pr-som">'
+    + '<div class="pr-rij"><span>Verkocht volgens de telling<small>'
+    + (tu - tt) + ' stuks \u00d7 verkoopprijs</small></span><b>'
+    + (g.gat ? '\u2013' : eur(g.bedrag)) + '</b></div>'
+    + '<div class="pr-rij"><span>Omzet volgens MplusKASSA<small>'
+    + 'het bedrag uit het kassarapport van deze ruimte</small></span><b>'
+    + (omz === null ? '\u2013' : eur(omz)) + '</b></div>'
+    + '<div class="pr-rij pr-slot"><span>'
+    + (kv === null ? 'Verschil' : (kv ? 'Verschil' : 'Geen verschil'))
+    + (kv ? '<small>' + (kv < 0
+        ? 'er is voor ' + eur(-kv) + ' meer aan spullen weg dan er geld binnenkwam'
+        : 'er kwam ' + eur(kv) + ' meer binnen dan er aan spullen weg is') + '</small>'
+       : (kv === 0 ? '<small>de kas komt uit tot op de euro</small>'
+          : '<small>het kassabedrag ontbreekt</small>'))
+    + '</span><b>' + (kv === null ? '\u2013' : eur(kv)) + '</b></div></div>';
+
+  /* De namen. */
+  function naamvak(titel, moment, rol){
+    var naam = !moment ? '' : (rol === 'crew' ? moment.crew : moment.ziggo);
+    var krab = !moment ? null : (rol === 'crew' ? moment.krabbelCrew : moment.krabbelZiggo);
+    return '<div class="pr-naam"><span class="pr-lab">' + esc(titel) + '</span>'
+      + '<div class="pr-krab">' + (krab ? '<img src="' + krab + '" alt="">' : '') + '</div>'
+      + '<div class="pr-wieis">' + esc(naam || '\u2014') + '</div>'
+      + '<div class="pr-toen">' + (moment ? esc(tijd(moment.tijd) + ' \u00b7 ' + BON.datum) : 'niet ondertekend')
+      + '</div></div>';
+  }
+  h += '<h2>Ondertekening</h2>'
+    + '<div class="pr-namen">'
+    + naamvak('Bij ontvangst \u00b7 afgegeven', S.ontvangst, 'crew')
+    + naamvak('Bij ontvangst \u00b7 nagekeken', S.ontvangst, 'ziggo')
+    + '</div><div class="pr-namen">'
+    + naamvak('Bij afsluiting \u00b7 teruggegeven', S.afsluiting, 'ziggo')
+    + naamvak('Bij afsluiting \u00b7 teruggenomen', S.afsluiting, 'crew')
+    + '</div>';
+
+  h += '<p class="pr-voet">Ondertekenen betekent dat beide partijen deze cijfers hebben '
+    + 'gezien op het moment zelf, niet dat iemand een verschil op zich neemt. '
+    + 'Deze bon is op de telefoon opgemaakt; de aantallen zijn geteld, de omzet is '
+    + 'overgenomen uit MplusKASSA.'
+    + '<code>' + esc(coderegel()) + '</code></p>';
+  return h;
+}
+
+/* Een telefoon maakt hier met Delen > Afdrukken een PDF van, en een laptop met
+   Bewaar als PDF. Een eigen pdf-bibliotheek zou een halve megabyte kosten voor
+   iets wat de browser al kan, en zou het vel ook nog eens op twee plekken
+   laten bestaan. */
+function afdrukken(){
+  var vak = document.getElementById('afdruk');
+  if (!vak) return;
+  vak.innerHTML = afdrukvel();
+  window.print();
+}
+
 /* ---- de berichten die de deur uit gaan ---------------------------------
    Twee, en ze zijn met opzet kort. Een WhatsApp met twintig regels wordt niet
    gelezen; dit zijn er vier, en het getal dat telt staat vooraan. */
@@ -1442,9 +1676,9 @@ function slotBericht(){
     'Kas: MplusKASSA ' + (omzetMplus() === null ? '–' : eur(omzetMplus()))
       + ' tegen ' + (geldTelling().gat ? '–' : eur(geldTelling().bedrag))
       + (kv ? ' — ' + eur(Math.abs(kv)) + ' verschil' : ' — komt uit'),
-    'Getekend door ' + (S.afsluiting ? S.afsluiting.ziggo + ' en ' + S.afsluiting.crew : '—'),
+    'Getekend door ' + (S.afsluiting ? S.afsluiting.ziggo + ' en ' + S.afsluiting.crew : '\u2014'),
     '',
-    coderegel()
+    'De sales-PDF met beide handtekeningen komt er los achteraan.'
   ].join('\n');
 }
 
@@ -1707,6 +1941,7 @@ function koppel(){
     /* tekenen en versturen */
     if (d.leegdoek) return doekLeeg();
     if (el.id === 'tekenklaar') return tekenKlaar();
+    if (d.pdf) return afdrukken();
     if (d.stuur){
       if (S.verzonden) return;
       S.verzonden = true; teken();
