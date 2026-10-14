@@ -1,0 +1,1815 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Telbon — Business Club</title>
+
+<!-- Eén letter in plaats van twee. Dat is het eerste wat "simpeler" betekent:
+     Archivo doet de koppen, de tekst en de cijfers, en voor de cijfers staat
+     font-variant-numeric op tabular zodat kolommen uitlijnen zonder dat er een
+     tweede letter aan te pas komt. Valt het net weg, dan staat er system-ui en
+     blijft alles leesbaar. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap">
+
+<style>
+/* ===========================================================================
+   Ziggo Business Club — Telbon, strakke versie
+
+   Zelfde app, andere huid. Twee dingen zijn anders en ze hangen samen:
+
+   1. De kleuren zijn die van de Ziggo Dome: zwart, oranje, wit. Het oranje is
+      een vlak en een balk, nooit een letter op wit — #F60 op wit haalt de 3:1
+      niet. Op zwart mag het wel, en als vulling met zwarte tekst erop is het
+      juist het sterkste wat deze app heeft. Daarom is de hoofdknop oranje met
+      zwarte letters.
+   2. Rood en groen staan los van het oranje. Een verschil mag nooit dezelfde
+      kleur hebben als een knop, anders leest elke knop als alarm.
+
+   En wat eruit is: het papier. Geen perforatie, geen dubbele kaderlijnen, geen
+   scheve stempel, geen tweede lettertype. Wat overblijft is een zwarte band
+   bovenaan, witte vlakken, hairlines, en grote cijfers. Alles wat informatie
+   draagt is gebleven; alles wat alleen sfeer droeg is weg.
+   =========================================================================== */
+
+:root{
+  --zwart:#111110;
+  --oranje:#ff6600;        /* Ziggo-oranje: vlak en balk, geen letter op wit */
+  --oranje-diep:#c74e00;   /* dezelfde kleur, wel leesbaar als tekst op wit */
+  --vlak:#ffffff;
+  --grond:#f1f0ed;
+  --inkt:#141413;
+  --inkt-2:#5d5c58;
+  --inkt-3:#97958f;
+  --lijn:#e2e0db;
+  --lijn-hard:#111110;
+  --accent:var(--oranje);
+  --opaccent:#111110;      /* wat er op het oranje staat */
+  --stempel:#c4240f;
+  --stempel-vlak:#fdeeeb;
+  --goed:#13693f;
+  --goed-vlak:#e8f2eb;
+  --toets:#ffffff;
+  --toetsrand:#d8d5cf;
+  --toetsdruk:#eceae5;
+  --raak:50px;
+  --kop:'Archivo',system-ui,-apple-system,'Helvetica Neue',sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-thema="licht"]){
+    /* De gang achter de Business Club. Zwart is hier geen stijlkeuze maar de
+       stand waarin de telefoon het vaakst opengaat. Het oranje blijft staan —
+       dat is de enige kleur die in allebei de standen hetzelfde mag zijn. */
+    --zwart:#000000;
+    --vlak:#191917;
+    --grond:#0b0b0a;
+    --inkt:#f3f1ec;
+    --inkt-2:#a5a29a;
+    --inkt-3:#6d6a63;
+    --lijn:#312f2b;
+    --lijn-hard:#4e4b45;
+    --oranje-diep:#ff8534;
+    --opaccent:#111110;
+    --stempel:#ff8a74;
+    --stempel-vlak:#2b1512;
+    --goed:#5fcf93;
+    --goed-vlak:#122019;
+    --toets:#232220;
+    --toetsrand:#35332e;
+    --toetsdruk:#3a3833;
+  }
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--grond); color:var(--inkt);
+  font-family:var(--kop); font-size:16px; line-height:1.45;
+  -webkit-text-size-adjust:100%; font-synthesis-weight:none;
+}
+button,input,textarea{font-family:inherit; -webkit-tap-highlight-color:transparent}
+::selection{ background:var(--oranje); color:#111110; }
+input,textarea{ caret-color:var(--oranje-diep); }
+:focus-visible{ outline:2px solid var(--oranje-diep); outline-offset:2px; border-radius:3px; }
+*{ scrollbar-width:thin; scrollbar-color:var(--lijn) transparent; }
+::-webkit-scrollbar{ width:5px; height:5px; }
+::-webkit-scrollbar-thumb{ background:var(--lijn); border-radius:3px; }
+::-webkit-scrollbar-track{ background:transparent; }
+
+/* alle cijfers in deze app lijnen uit, zonder tweede lettertype */
+.mtab, .waarde, .somrij b, .geldrij b, .hoeveel, .bonnr, .vorder, .teller,
+.klavier button, .geldrij input, .trapnaam small, .aanvulregel,
+.artprijs{ font-variant-numeric:tabular-nums; }
+
+/* ---- het blad ----------------------------------------------------------- */
+.scherm{ max-width:480px; margin:0 auto; min-height:100vh; min-height:100dvh;
+  display:flex; flex-direction:column; }
+.scherm.vast{ height:100vh; height:100dvh; overflow:hidden; }
+.vel{ flex:1 1 auto; background:var(--vlak); display:flex; flex-direction:column;
+  min-height:0; position:relative; }
+.blad{ flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  padding:0 18px 28px; }
+.scherm:not(.vast) .blad{ overflow:visible; }
+.scherm:not(.vast) .voet{ position:sticky; bottom:0; z-index:5; }
+
+/* ---- de kop: zwarte band, oranje streep --------------------------------- */
+.bonkop{ margin:0 -18px 0; padding:16px 18px 13px; background:var(--zwart);
+  color:#ffffff; border-bottom:4px solid var(--oranje);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.bontitel{ font-size:21px; font-weight:800; letter-spacing:-.015em; line-height:1.05;
+  margin:0; }
+.bonnr{ font-size:12px; color:rgba(255,255,255,.62); letter-spacing:.01em; margin-top:3px; }
+.bonwie{ font-size:13.5px; color:var(--inkt-2); margin:12px 0 0; line-height:1.35; }
+.bonwie b{ color:var(--inkt); font-weight:600; }
+
+/* De stand van de bon. Geen stempel meer maar een label: rechtop, strak,
+   één regel. Wat het zegt is belangrijker dan hoe het erbij hangt. */
+.stempel{ flex:0 0 auto; border-radius:3px; padding:5px 9px 4px;
+  font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  line-height:1.15; text-align:right; white-space:nowrap;
+  background:rgba(255,255,255,.12); color:#ffffff; }
+.stempel small{ display:block; font-size:10px; font-weight:500; letter-spacing:.02em;
+  opacity:.72; margin-top:1px; text-transform:none; }
+.stempel.rood{ background:var(--stempel); color:#ffffff; }
+.stempel.groen{ background:var(--goed); color:#ffffff; }
+.stempel.open{ background:transparent; color:rgba(255,255,255,.72);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.3); }
+.stempel.land{ animation:opkomen .3s ease-out both; }
+@keyframes opkomen{ from{ opacity:0; transform:translateY(-3px); } }
+
+/* ---- de ladder ---------------------------------------------------------- */
+.ladder{ margin:16px 0 0; border:1px solid var(--lijn); border-radius:10px;
+  overflow:hidden; }
+.trap{ display:flex; align-items:center; gap:12px; width:100%; min-height:58px;
+  padding:9px 13px; border:0; background:transparent; color:inherit;
+  font:inherit; text-align:left; position:relative; }
+.trap + .trap{ border-top:1px solid var(--lijn); }
+.trap:active{ background:var(--toetsdruk); }
+.trapnr{ flex:0 0 26px; height:26px; border-radius:50%; background:var(--grond);
+  display:flex; align-items:center; justify-content:center; font-size:12px;
+  font-weight:700; color:var(--inkt-3); }
+.trap.af .trapnr{ background:var(--goed); color:#ffffff; }
+.trap.af .trapnr svg{ width:14px; height:14px; }
+.trap.nu .trapnr{ background:var(--oranje); color:#111110; }
+.trap.let .trapnr{ background:var(--stempel); color:#ffffff; }
+.trap.let .trapstand{ color:var(--stempel); }
+.trapnaam{ flex:1 1 auto; min-width:0; font-size:15px; font-weight:600; }
+.trapnaam small{ display:block; font-size:12px; font-weight:400; color:var(--inkt-2); }
+.trapstand{ flex:0 0 auto; font-size:10.5px; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--inkt-3); }
+.trap.af .trapstand{ color:var(--goed); }
+.trap.nu .trapstand{ color:var(--oranje-diep); }
+.trap svg.pijl{ width:16px; height:16px; color:var(--inkt-3); flex:0 0 auto; }
+
+/* ---- kleine koppen ------------------------------------------------------ */
+.veldlabel{ font-size:11px; font-weight:700; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--inkt-2); }
+.sectie{ margin:26px 0 0; }
+.sectie > h2{ font-size:13px; font-weight:800; letter-spacing:.07em; margin:0 0 3px;
+  text-transform:uppercase; color:var(--inkt); }
+.sectie > h2::after{ content:""; display:block; width:26px; height:3px;
+  background:var(--oranje); margin-top:6px; }
+.sectie > p.toel{ font-size:13.5px; color:var(--inkt-2); margin:9px 0 13px; }
+
+/* ---- de artikelen ------------------------------------------------------- */
+.art{ margin:0 0 10px; padding:13px 14px; border:1px solid var(--lijn);
+  border-radius:10px; }
+.artkop{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.artnaam{ font-size:16px; font-weight:700; letter-spacing:-.01em; line-height:1.2; margin:0;
+  overflow-wrap:anywhere; }
+.artnaam i{ display:block; font-style:normal; font-size:12px; font-weight:400;
+  color:var(--inkt-2); letter-spacing:0; }
+.artprijs{ flex:0 0 auto; font-size:13px; font-weight:600; color:var(--inkt-2); }
+
+.matrix{ margin-top:10px; overflow-x:auto; overscroll-behavior-x:contain; }
+.mtab{ border-collapse:collapse; width:100%; min-width:max-content; }
+.mtab th,.mtab td{ font-size:14px; font-weight:500; text-align:right;
+  padding:3px 0 3px 12px; white-space:nowrap; }
+.mtab th:first-child,.mtab td:first-child{ padding-left:0; text-align:left;
+  font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--inkt-2); min-width:62px; position:sticky; left:0; background:var(--vlak); }
+.mtab thead th{ vertical-align:bottom; font-size:11px; font-weight:700; letter-spacing:.05em;
+  color:var(--inkt-2); border-bottom:1px solid var(--lijn); padding-bottom:5px;
+  text-transform:uppercase; }
+.mtab td.tot,.mtab thead th.tot{ padding-left:16px; font-weight:700; }
+.mtab tr.rverkocht td{ border-top:1px solid var(--lijn); padding-top:6px;
+  color:var(--inkt); font-weight:700; }
+.mtab td.leeg{ color:var(--inkt-3); font-weight:400; }
+.mtab td.fout{ color:var(--stempel); font-weight:700; }
+.mtab tr.ruit td, .mtab tr.rterug td{ color:var(--inkt-2); }
+
+.kassaregel{ display:flex; align-items:baseline; justify-content:space-between;
+  gap:10px; margin-top:11px; padding-top:10px; border-top:1px solid var(--lijn);
+  font-size:13px; }
+.kassaregel .veldlabel{ flex:0 0 auto; }
+.kassaregel b{ font-size:17px; font-weight:700; }
+.kassaregel.open b{ color:var(--inkt-3); }
+
+/* ---- meldingen, groen en rood ------------------------------------------- */
+.verschil{ display:flex; align-items:flex-start; gap:10px; margin-top:10px;
+  padding:11px 12px; border-radius:8px; border-left:4px solid var(--stempel);
+  background:var(--stempel-vlak); color:var(--stempel); }
+.verschil svg{ flex:0 0 auto; width:18px; height:18px; margin-top:1px; }
+.verschil b{ display:block; font-size:15px; font-weight:700; }
+.verschil p{ margin:3px 0 0; font-size:13px; line-height:1.4; color:var(--inkt-2); }
+.verschil.goed{ border-left-color:var(--goed); background:var(--goed-vlak); color:var(--goed); }
+.melding{ display:flex; gap:10px; align-items:flex-start; margin:0 0 16px;
+  padding:12px 13px; border-radius:8px; border-left:4px solid var(--stempel);
+  background:var(--stempel-vlak); }
+.melding svg{ flex:0 0 auto; width:18px; height:18px; color:var(--stempel); margin-top:1px; }
+.melding > div > b{ display:block; font-size:15px; color:var(--stempel); margin-bottom:3px; }
+.melding p{ margin:0; font-size:13.5px; color:var(--inkt-2); line-height:1.4; }
+.melding p b{ color:var(--inkt); font-weight:700; }
+.melding .acties{ display:flex; flex-wrap:wrap; gap:16px; margin-top:9px; }
+.melding.stil{ border-left-color:var(--inkt-3); background:var(--grond); }
+.melding.stil svg,.melding.stil b{ color:var(--inkt); }
+.bewaardbalk{ font-size:12.5px; font-weight:600; color:var(--goed); padding:8px 18px 0; }
+
+/* ---- de slotsom --------------------------------------------------------- */
+.som{ margin-top:20px; border-top:3px solid var(--zwart); }
+.somrij{ display:flex; align-items:baseline; justify-content:space-between; gap:12px;
+  padding:9px 0; font-size:14.5px; }
+.somrij + .somrij{ border-top:1px solid var(--lijn); }
+.somrij span{ flex:1 1 auto; }
+.somrij b{ flex:0 0 auto; font-size:17px; font-weight:700; }
+.somrij.groot{ font-size:16px; font-weight:700; }
+.somrij.groot b{ font-size:26px; letter-spacing:-.02em; }
+.somrij.afwijk b{ color:var(--stempel); }
+.somrij.akkoord b{ color:var(--goed); }
+.somrij small{ display:block; font-size:12.5px; font-weight:400; color:var(--inkt-2); }
+
+/* ---- het geld: het grootste blok van de app ----------------------------- */
+.geld{ margin-top:14px; border:1px solid var(--lijn); border-radius:10px; overflow:hidden; }
+.geldrij{ display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:13px 14px; }
+.geldrij + .geldrij{ border-top:1px solid var(--lijn); }
+.geldrij span{ flex:1 1 auto; font-size:14.5px; }
+.geldrij span small{ display:block; font-size:12.5px; font-weight:400; color:var(--inkt-2); }
+.geldrij b{ flex:0 0 auto; font-size:23px; font-weight:700; letter-spacing:-.015em; }
+.geldrij.slot{ background:var(--zwart); color:#ffffff; }
+.geldrij.slot span{ font-weight:700; font-size:15.5px; }
+.geldrij.slot span small{ font-weight:400; color:rgba(255,255,255,.66); }
+.geldrij.slot b{ font-size:28px; }
+.geldrij.slot.afwijk b{ color:#ff8a74; }
+.geldrij.slot.akkoord b{ color:#5fcf93; }
+.geldrij.slot.open b{ color:rgba(255,255,255,.4); }
+.geldrij input{ flex:0 0 122px; min-width:0; height:46px; text-align:right; padding:0 12px;
+  font-size:20px; font-weight:700; border:1px solid var(--toetsrand); border-radius:8px;
+  background:var(--toets); color:var(--inkt); }
+.geldrij input:focus{ outline:none; border-color:var(--oranje);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--oranje) 30%, transparent); }
+
+/* ---- handtekeningen ----------------------------------------------------- */
+.tekenpaar{ display:flex; flex-direction:column; gap:12px; margin-top:12px; }
+.tekenvak{ border:1px solid var(--lijn); border-radius:10px; padding:11px 13px 12px; }
+.tekenvak .veldlabel{ display:block; margin-bottom:3px; }
+.tekenvak .wie{ font-size:15px; font-weight:700; }
+.tekenvak .wanneer{ font-size:12.5px; color:var(--inkt-2); }
+.krabbel{ display:block; width:100%; height:62px; margin:6px 0 0;
+  border-bottom:2px solid var(--lijn-hard); }
+.krabbel img{ display:block; height:56px; max-width:100%; object-fit:contain; object-position:left bottom; }
+.krabbel.leeg{ display:flex; align-items:flex-end; padding-bottom:5px;
+  font-size:12.5px; color:var(--inkt-3); }
+@media (prefers-color-scheme: dark){
+  :root:not([data-thema="licht"]) .krabbel img{ filter:invert(1) brightness(1.5); }
+}
+.tekenveld{ width:100%; height:180px; border:2px dashed var(--lijn);
+  border-radius:10px; background:var(--grond); touch-action:none; display:block; }
+.tekenveld.vol{ border-style:solid; border-color:var(--oranje); }
+.tekenlijn{ margin:-28px 16px 0; border-bottom:2px solid var(--lijn-hard);
+  position:relative; pointer-events:none; }
+.tekenhint{ font-size:12.5px; color:var(--inkt-3); margin:10px 0 0; text-align:center; }
+.verklaring{ font-size:15px; line-height:1.5; margin:16px 0; }
+.verklaring b{ font-weight:700; }
+
+/* ---- aanvullingen en correcties ----------------------------------------- */
+.aanvul{ display:flex; gap:10px; align-items:flex-start; margin:14px 0 0;
+  padding:12px 13px; border-radius:8px; border-left:4px solid var(--oranje);
+  background:color-mix(in srgb, var(--oranje) 9%, transparent); }
+.aanvul svg{ flex:0 0 auto; width:18px; height:18px; color:var(--oranje-diep); margin-top:2px; }
+.aanvul b{ display:block; font-size:15px; font-weight:700; margin-bottom:2px; }
+.aanvul p{ margin:0; font-size:13px; color:var(--inkt-2); line-height:1.4; }
+.aanvul .acties{ display:flex; flex-wrap:wrap; gap:16px; margin-top:8px; }
+.aanvul.weg{ background:var(--grond); border-left-color:var(--inkt-3); }
+.aanvul.weg svg{ color:var(--inkt-3); }
+.aanvullijst{ margin:10px 0 0; }
+.aanvulregel{ display:flex; gap:10px; align-items:baseline; padding:7px 0;
+  border-top:1px solid var(--lijn); font-size:13px; }
+.aanvulregel i{ flex:0 0 46px; font-style:normal; font-size:12.5px; font-weight:600;
+  color:var(--inkt-2); }
+.aanvulregel span{ flex:1 1 auto; min-width:0; }
+.aanvulregel b{ flex:0 0 auto; font-size:14px; font-weight:700; }
+
+/* ---- velden ------------------------------------------------------------- */
+.vraag{ font-size:16px; font-weight:700; margin:20px 0 3px; }
+.vraagbij{ font-size:13.5px; color:var(--inkt-2); margin:0 0 10px; }
+.veld{ width:100%; height:var(--raak); padding:0 14px; font-size:16px;
+  border:1px solid var(--toetsrand); border-radius:9px; background:var(--toets);
+  color:var(--inkt); }
+.veld::placeholder{ color:var(--inkt-3); }
+.veld:focus{ outline:none; border-color:var(--oranje);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--oranje) 30%, transparent); }
+.keus{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.keus button{ min-height:70px; border:1px solid var(--toetsrand); border-radius:10px;
+  background:var(--toets); color:inherit; font:inherit; display:flex;
+  flex-direction:column; align-items:flex-start; justify-content:center; gap:3px;
+  padding:10px 12px; text-align:left; }
+.keus button b{ font-size:15px; font-weight:700; }
+.keus button i{ font-style:normal; font-size:12px; color:var(--inkt-2); }
+.keus button:active{ background:var(--toetsdruk); }
+.keus button.aan{ border-color:var(--oranje); background:var(--oranje); color:#111110; }
+.keus button.aan i{ color:#111110; opacity:.75; }
+
+/* ---- knoppen ------------------------------------------------------------
+   Drie trappen. De oranje is de inkt van deze app en er is er één per scherm;
+   zwarte letters erop, want oranje met wit haalt het contrast niet. */
+.voet{ flex:0 0 auto; padding:12px 16px calc(14px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--lijn); background:var(--vlak);
+  display:flex; gap:10px; align-items:stretch; }
+.knop{ flex:1 1 auto; min-height:var(--raak); border:0; border-radius:9px;
+  font:inherit; font-size:16px; font-weight:700; background:var(--oranje);
+  color:#111110; display:flex; align-items:center; justify-content:center;
+  gap:9px; padding:0 16px; transition:filter .1s ease-out, transform .1s ease-out; }
+.knop svg{ width:18px; height:18px; flex:0 0 auto; }
+.knop:active{ transform:scale(.985); filter:brightness(1.06); }
+.knop.stil{ background:transparent; color:var(--inkt); border:1px solid var(--toetsrand); }
+.knop.stil:active{ background:var(--toetsdruk); filter:none; }
+.knop.krimp{ flex:0 0 auto; }
+.knop.let{ background:transparent; color:var(--stempel); border:1px solid var(--stempel); }
+.knop:disabled{ opacity:.38; }
+.tekstknop{ display:inline-flex; align-items:center; gap:7px; min-height:var(--raak);
+  border:0; background:transparent; color:var(--oranje-diep); font:inherit; font-size:14.5px;
+  font-weight:700; padding:0; text-decoration:underline; text-underline-offset:3px;
+  text-decoration-thickness:2px; }
+.tekstknop svg{ width:16px; height:16px; }
+.tekstknop:active{ opacity:.6; }
+.laadknop{ pointer-events:none; opacity:.75; }
+.laadknop svg.spin{ animation:spin 1s linear infinite; }
+@keyframes spin{ to{ transform:rotate(360deg); } }
+
+/* ---- telscherm ---------------------------------------------------------- */
+.telkop{ flex:0 0 auto; padding:13px 18px 10px; background:var(--zwart);
+  color:#ffffff; border-bottom:4px solid var(--oranje); }
+.telkop .bontitel{ font-size:17px; }
+.telkop .rij{ display:flex; align-items:flex-start; justify-content:space-between;
+  gap:10px; margin:0; }
+.telkop .knop.stil{ color:#ffffff; border-color:rgba(255,255,255,.35); }
+.balk{ display:block; height:4px; background:rgba(255,255,255,.18); border-radius:2px;
+  margin-top:10px; }
+.balk i{ display:block; height:4px; width:0; background:var(--oranje); border-radius:2px;
+  transition:width .22s cubic-bezier(.16,1,.3,1); }
+.vorder{ display:block; font-size:12px; color:rgba(255,255,255,.66); margin-top:5px; }
+
+.midden{ flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+  padding:13px 18px 0; display:flex; flex-direction:column; }
+.telart{ display:flex; align-items:center; gap:4px; margin:0 0 3px; }
+.telart h1{ flex:1 1 auto; min-width:0; font-size:22px; font-weight:800;
+  letter-spacing:-.02em; line-height:1.14; margin:0; overflow-wrap:anywhere; }
+.telart .teller{ flex:0 0 auto; font-size:12px; font-weight:600; color:var(--inkt-2); }
+.pijlknop{ flex:0 0 auto; width:38px; height:38px; display:flex; align-items:center;
+  justify-content:center; border:0; border-radius:50%; background:var(--grond);
+  color:var(--inkt); }
+.pijlknop svg{ width:20px; height:20px; }
+.pijlknop:active{ background:var(--toetsdruk); }
+.pijlknop:disabled{ opacity:.25; }
+.telonder{ font-size:13px; color:var(--inkt-2); margin:0 0 10px; }
+
+.regel{ display:flex; align-items:center; gap:12px; width:100%; padding:0 10px;
+  margin:0 -10px; min-height:var(--raak); border:0; background:transparent;
+  color:inherit; font:inherit; text-align:left; border-radius:8px; position:relative; }
+.regel + .regel::before{ content:""; position:absolute; left:10px; right:10px; top:0;
+  height:1px; background:var(--lijn); }
+.regel.hier{ background:color-mix(in srgb, var(--oranje) 14%, transparent); }
+.regel.hier::before,.regel.hier + .regel::before{ background:transparent; }
+.maat{ flex:1 1 auto; min-width:0; font-size:17px; font-weight:700; }
+.maat small{ display:block; font-size:12px; font-weight:400; color:var(--inkt-2); }
+.maat small.fout{ color:var(--stempel); font-weight:600; }
+.waarde{ flex:0 0 auto; min-width:72px; text-align:right; font-size:24px; font-weight:700; }
+.waarde.leeg{ color:var(--inkt-3); font-weight:400; }
+.waarde.af{ color:var(--goed); }
+.waarde.fout{ color:var(--stempel); }
+.regel.hier .waarde{ color:var(--inkt); }
+.vink{ flex:0 0 17px; height:17px; color:var(--goed); opacity:0; }
+.vink svg{ width:17px; height:17px; display:block; }
+.vink.aan{ opacity:1; }
+.regel.landt .waarde{ animation:landt .3s cubic-bezier(.16,1,.3,1); }
+@keyframes landt{ from{ transform:translateY(-3px) scale(1.08); } to{ transform:none; } }
+
+.alles{ display:flex; align-items:center; justify-content:center; gap:9px; width:100%;
+  min-height:48px; margin:16px 0 12px; margin-top:auto; flex:0 0 auto;
+  border-radius:9px; border:1px solid var(--toetsrand); background:transparent;
+  color:var(--inkt-2); font:inherit; font-size:14.5px; font-weight:700; }
+.alles svg{ width:17px; height:17px; }
+.alles:active{ background:var(--toetsdruk); }
+.alles.zeker{ border-color:var(--stempel); color:var(--stempel); }
+
+.klavier{ flex:0 0 auto; display:grid; gap:7px; grid-template-columns:repeat(4,1fr);
+  grid-template-rows:repeat(4,1fr); padding:9px 11px calc(11px + env(safe-area-inset-bottom));
+  background:var(--vlak); border-top:1px solid var(--lijn); }
+.klavier button{ display:flex; align-items:center; justify-content:center; gap:6px;
+  height:52px; border-radius:10px; border:1px solid var(--toetsrand); background:var(--toets);
+  color:var(--inkt); font:inherit; font-size:25px; font-weight:600;
+  transition:background .09s ease-out, transform .09s ease-out; }
+.klavier button:active{ background:var(--toetsdruk); transform:scale(.97); }
+.klavier button svg{ width:22px; height:22px; }
+.klavier .hulp{ font-size:15px; font-weight:700; color:var(--inkt-2); }
+.klavier .nul{ grid-column:span 2; }
+.klavier .terug{ font-size:13px; font-weight:700; color:var(--inkt); gap:5px; }
+.klavier .terug svg{ width:16px; height:16px; }
+.klavier .terug:disabled{ opacity:.3; }
+.klavier .door{ grid-row:span 2; height:auto; flex-direction:column; gap:5px;
+  background:var(--oranje); border-color:var(--oranje); color:#111110;
+  font-size:14px; font-weight:800; line-height:1.15; text-align:center; padding:0 4px; }
+.klavier .door:active{ background:var(--oranje); transform:scale(.97); filter:brightness(1.07); }
+.klavier .door svg{ width:23px; height:23px; }
+
+/* ---- het eerste scherm -------------------------------------------------- */
+.leegvel{ padding:22px 0 0; }
+.leegvel h1{ font-size:27px; font-weight:800; letter-spacing:-.025em; margin:0 0 8px;
+  line-height:1.1; }
+.leegvel p.uitleg{ font-size:15px; color:var(--inkt-2); margin:0 0 8px; line-height:1.5; }
+.leeglijnen{ margin:22px 0 0; border-top:1px solid var(--lijn); }
+.leeglijn{ display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 0; border-bottom:1px solid var(--lijn); }
+.leeglijn .veldlabel{ color:var(--inkt-2); }
+.leeglijn em{ font-style:normal; font-size:19px; font-weight:700; color:var(--inkt);
+  font-variant-numeric:tabular-nums; }
+
+/* ---- de controle -------------------------------------------------------- */
+.ctrlwrap{ display:flex; align-items:stretch; margin:0 -10px; padding:0 10px;
+  position:relative; border-radius:8px; }
+.ctrlwrap + .ctrlwrap::before{ content:""; position:absolute; left:10px; right:10px; top:0;
+  height:1px; background:var(--lijn); }
+.ctrl{ display:flex; align-items:center; gap:12px; flex:1 1 auto; min-width:0;
+  min-height:var(--raak); border:0; background:transparent; padding:0;
+  color:inherit; font:inherit; text-align:left; border-radius:8px; }
+.ctrl:active{ background:var(--toetsdruk); }
+.ctrlnr{ flex:0 0 auto; border:0; background:transparent; font:inherit; color:inherit;
+  padding:0 2px 0 14px; min-height:var(--raak); border-radius:8px; }
+.ctrlnr:active{ background:var(--toetsdruk); }
+.ctrl .wat{ flex:1 1 auto; min-width:0; font-size:15.5px; font-weight:600; }
+.ctrl .wat small{ display:block; font-size:12px; font-weight:400; color:var(--inkt-2); }
+.ctrl .hoeveel{ flex:0 0 auto; font-size:21px; font-weight:700; }
+.ctrl .merk{ flex:0 0 20px; height:20px; color:var(--inkt-3); }
+.ctrl .merk svg{ width:20px; height:20px; display:block; }
+.ctrlwrap.gezien .merk{ color:var(--goed); }
+.ctrlwrap.anders .hoeveel{ color:var(--stempel); }
+.ctrlwrap.anders .merk{ color:var(--stempel); }
+.ctrlwrap.anders .wat small{ color:var(--stempel); }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important;
+    transition-duration:.001ms !important; }
+}
+</style>
+
+<body>
+<div class="scherm" id="app"></div>
+<script>
+/* ===========================================================================
+   De telbon, strakke versie — zelfde keten, Ziggo Dome-kleuren
+
+   Wat hier anders is dan in de eerste maquette, en waarom:
+
+   1. De bon begint niet leeg. Eran vinkt in Show Setup aan wat er naar de
+      Business Club gaat, met maten en aantallen, en stuurt één link door. De
+      club krijgt een bon die al vol staat.
+   2. De club telt dus niet uit — die controleert. Dat is een ander soort werk
+      en hoort een ander soort scherm te zijn: geen klavier, maar een lijst waar
+      je per maat zegt "gezien" of "nee, het is anders".
+   3. Elke wijziging aan de uitkolom — een correctie bij ontvangst, een doos die
+      later nog komt — is een eigen regel met tijd en naam, én een bericht dat
+      de deur uit gaat. Eran hoort het op het moment zelf, niet pas bij het
+      afrekenen.
+   4. De kas is één bedrag uit MplusKASSA, niet een coupure-telling. Daarnaast
+      MplusKASSA geeft per artikel niets terug, dus is dat bedrag ook alles wat
+      er te vergelijken valt — en dat is genoeg, want dit gaat over één band
+      die bij hen in consignatie staat.
+
+   Wat hier niet in kan, en dat is geen tekortkoming van de maquette maar van
+   de werkelijkheid: een echte duwmelding. Daar is een server voor nodig en die
+   is er niet. Wat er wél is: één tik die een WhatsApp aan Eran klaarzet, en een
+   bon die aanvullingen bovenaan zet zodat ze niet weg te kijken zijn.
+   =========================================================================== */
+
+var IC = {
+  vink:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 12.5 5.2 5.2L20 7"/></svg>',
+  pijl:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13m-5.5-6 6 6-6 6"/></svg>',
+  terug:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H6m5.5-6-6 6 6 6"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',
+  ga:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>',
+  wis:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 5H9.4a2 2 0 0 0-1.5.7l-4.6 5.6a1.2 1.2 0 0 0 0 1.4l4.6 5.6a2 2 0 0 0 1.5.7H20a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z"/><path d="M16.5 9.5 12 14m0-4.5 4.5 4.5"/></svg>',
+  doos:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5v-9Z"/><path d="M3 7.5 12 12m0 9V12m9-4.5L12 12"/></svg>',
+  let:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4.5M12 17h.01"/><path d="M10.3 3.9 2.6 17.2A2 2 0 0 0 4.3 20h15.4a2 2 0 0 0 1.7-2.8L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>',
+  pen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.9a2 2 0 0 1 2.8 0l.8.8a2 2 0 0 1 0 2.8L8.4 19.2 3.5 20.5l1.3-4.9Z"/><path d="m14.5 5.9 3.6 3.6"/></svg>',
+  slot:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  stuur:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2.5 11 13"/><path d="M21.5 2.5 15 21.5l-4-8.5-8.5-4Z"/></svg>',
+  draai:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5" opacity=".3"/><path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5"/></svg>',
+  oog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>',
+  cirkel:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg>',
+  euro:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 6.5A6.5 6.5 0 0 0 7 12a6.5 6.5 0 0 0 10 5.5"/><path d="M4.5 10.5h8M4.5 14h8"/></svg>',
+  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1 1"/><path d="M14 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1-1"/></svg>'
+};
+
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function eur(n){
+  var t = Math.abs(n).toLocaleString('nl-NL', { minimumFractionDigits:0, maximumFractionDigits:0 });
+  return (n < 0 ? '− ' : '') + '€ ' + t;
+}
+function nu(){ return new Date(); }
+function tijd(d){
+  var t = (d instanceof Date) ? d : new Date(d);
+  return ('0' + t.getHours()).slice(-2) + ':' + ('0' + t.getMinutes()).slice(-2);
+}
+function initialen(naam){
+  return String(naam || '').trim().split(/\s+/)
+    .map(function(w){ return w.charAt(0).toUpperCase(); }).join('.') + '.';
+}
+
+/* ---- de avond, uit de link ----------------------------------------------
+   Alles wat deze pagina weet staat achter de # van het adres. Een browser
+   stuurt dat stuk nooit naar de server, dus er komt geen artiest, zaal of
+   voorraad op een vreemde schijf te staan. Dezelfde afspraak als bij Stand
+   Count; hier staat alleen een ander soort lijst in.
+
+   De vorm: velden gescheiden door \x01, artikelen door \x02, binnen een
+   artikel door \x03, en de maten onderling door \x04. Die vier tekens komen in
+   geen enkele artikelnaam voor, dus hoeft er niets ontsnapt te worden en kan
+   een naam met een streepje, een schuine streep of een dubbele punt niets
+   breken. */
+var BON = { nr:'', zaal:'', ruimte:'', show:'', datum:'', iso:'', crew:'', tel:'' };
+var ART = [];
+var REGELS = [];
+var MEE = {};
+
+function b64uit(t){
+  t = String(t || '').replace(/-/g, '+').replace(/_/g, '/');
+  while (t.length % 4) t += '=';
+  return decodeURIComponent(escape(atob(t)));
+}
+function datumUit(acht){
+  var m = ['januari','februari','maart','april','mei','juni','juli','augustus',
+           'september','oktober','november','december'];
+  if (!/^\d{8}$/.test(acht)) return '';
+  var d = new Date(+acht.slice(0,4), +acht.slice(4,6) - 1, +acht.slice(6));
+  var dg = ['zo','ma','di','wo','do','vr','za'][d.getDay()];
+  return dg + ' ' + (+acht.slice(6)) + ' ' + m[+acht.slice(4,6) - 1] + ' ' + acht.slice(0,4);
+}
+
+/* Geeft terug of het gelukt is. Bij een halve of oude link gaat de pagina niet
+   half open met half een lijst — dan zegt hij dat er iets mis is met de link,
+   want doortellen op een onvolledige lijst is erger dan niet tellen. */
+function uitpakken(hash){
+  var V = '\x01', R = '\x02', S = '\x03', M = '\x04';
+  var ruw;
+  try { ruw = b64uit(hash); } catch (e){ return false; }
+  var deel = ruw.split(V);
+  if (deel.length < 9 || deel[0] !== '1') return false;
+
+  BON.show   = deel[1] || 'Show';
+  BON.zaal   = deel[2] || '';
+  BON.iso    = deel[3] || '';
+  BON.datum  = datumUit(BON.iso) || BON.iso;
+  BON.ruimte = deel[4] || 'Business Club';
+  BON.nr     = deel[5] || '';
+  BON.crew   = deel[6] || '';
+  BON.tel    = String(deel[7] || '').replace(/[^0-9]/g, '');
+
+  var n = 1;
+  ART = [];
+  REGELS = [];
+  MEE = {};
+  (deel.slice(8).join(V) || '').split(R).forEach(function(blok){
+    if (!blok) return;
+    var v = blok.split(S);
+    if (v.length < 4) return;
+    var a = { id:'a' + ART.length, naam:v[0], sub:v[1] || '', prijs:+v[2] || 0,
+              ev:'stuk', mv:'stuks', maten:[], regels:[] };
+    v.slice(3).join(S).split(M).forEach(function(paar){
+      if (!paar) return;
+      var k = paar.lastIndexOf(':');
+      if (k < 0) return;
+      var maat = paar.slice(0, k) || '\u2013';
+      var aantal = parseInt(paar.slice(k + 1), 10) || 0;
+      if (aantal <= 0) return;
+      var r = { no:n++, art:a.id, maat:maat, stand:aantal };
+      a.maten.push([maat, aantal]);
+      a.regels.push(r);
+      REGELS.push(r);
+      MEE[r.no] = String(aantal);
+    });
+    if (a.regels.length) ART.push(a);
+  });
+  return ART.length > 0;
+}
+
+function regel(no){ for (var i=0;i<REGELS.length;i++) if (REGELS[i].no === no) return REGELS[i]; return null; }
+function art(id){ for (var i=0;i<ART.length;i++) if (ART[i].id === id) return ART[i]; return null; }
+
+/* ---- Erans kant: wat gaat er mee ---------------------------------------
+   MEE is wat hij in Show Setup aanvinkt. Dit is de enige plek waar de
+   uitkolom ontstaat; daarna is het de bon die hem bijhoudt. */
+var MEE = {};
+function meeW(no){ var v = MEE[no]; var n = parseInt(v, 10); return isNaN(n) ? 0 : n; }
+function artMee(a){ var t = 0; a.regels.forEach(function(r){ t += meeW(r.no); }); return t; }
+function artAan(a){ return artMee(a) > 0; }
+function totaalMee(){ var t = 0; REGELS.forEach(function(r){ t += meeW(r.no); }); return t; }
+function regelsMee(){ return REGELS.filter(function(r){ return meeW(r.no) > 0; }); }
+function artenMee(){ return ART.filter(artAan); }
+function geldMee(){
+  var t = 0; ART.forEach(function(a){ t += artMee(a) * a.prijs; }); return t;
+}
+
+/* ---- de stand van de bon ------------------------------------------------ */
+var S = leeg();
+function leeg(){
+  return {
+    scherm:'open',
+    ruimte:'',
+    ziggo:'',                 /* wie van de club de telefoon heeft */
+    UIT:{},                   /* no -> aantal volgens de bon (start = MEE) */
+    GEZIEN:{},                /* no -> true, bij de controle afgevinkt */
+    TERUG:{},                 /* no -> ingeteld aan het eind */
+    WIJZ:[],                  /* correcties en aanvullingen, met tijd en naam */
+    omzet:'',                 /* één bedrag uit MplusKASSA, in euro */
+    ontvangst:null, afsluiting:null,
+    wijzigNo:null, wijzigSoort:'correctie',
+    STAP:0, MAAT:0, VERS:null, LANDT:null, ZEKER:false,
+    hersteld:0, stempelLandt:false, verzonden:false, gemeld:0
+  };
+}
+
+/* ---- rekenen ------------------------------------------------------------ */
+function uitW(no){ var v = S.UIT[no]; return v === undefined || v === '' ? null : parseInt(v, 10); }
+function terW(no){ var v = S.TERUG[no]; return v === undefined || v === '' ? null : parseInt(v, 10); }
+function verkochtRegel(no){
+  var u = uitW(no), t = terW(no);
+  return (u === null || t === null) ? null : u - t;
+}
+/* De bon gaat alleen over wat er meegaat. Zolang er niets is aangevinkt staat
+   er nog niets op de bon, en dan is de volle lijst het juiste antwoord. */
+function lijst(){ return regelsMee().length ? regelsMee() : REGELS; }
+function somArt(a, f){
+  var t = 0, gat = false;
+  a.regels.forEach(function(r){ if (meeW(r.no) === 0) return;
+    var v = f(r.no); if (v === null) gat = true; else t += v; });
+  return { som:t, gat:gat };
+}
+function verkochtArt(a){ return somArt(a, verkochtRegel); }
+function regelFout(no){
+  var u = uitW(no), t = terW(no);
+  return (u !== null && t !== null && t > u);
+}
+function alleFouten(){ return lijst().filter(function(r){ return regelFout(r.no); }); }
+function gatenIn(){ return lijst().filter(function(r){ return terW(r.no) === null; }); }
+function ongezien(){ return lijst().filter(function(r){ return !S.GEZIEN[r.no]; }); }
+function totaal(f){
+  var t = 0; lijst().forEach(function(r){ var v = f(r.no); if (v !== null) t += v; }); return t;
+}
+/* Het geld. Hier hangt de hele avond aan, en er is maar één getal van de kassa
+   dat te zien is: de omzet van deze ruimte. Per artikel valt er uit MplusKASSA
+   niets te halen, dus wordt er ook niets per artikel beloofd. */
+function omzetMplus(){
+  var v = String(S.omzet).replace(/[^0-9]/g, '');
+  return v === '' ? null : parseInt(v, 10);
+}
+function geldTelling(){
+  var t = 0, gat = false;
+  artenMee().forEach(function(a){
+    var g = verkochtArt(a);
+    if (g.gat) gat = true; else t += g.som * a.prijs;
+  });
+  return { bedrag:t, gat:gat };
+}
+function kasVerschil(){
+  var m = omzetMplus(), g = geldTelling();
+  if (m === null || g.gat) return null;
+  return m - g.bedrag;
+}
+function nietGemeld(){ return S.WIJZ.filter(function(w){ return !w.gemeld; }); }
+
+/* ---- bewaren bij elke aanslag ------------------------------------------- */
+function sleutel(){ return 'telbon2.' + BON.nr + '.' + S.ruimte; }
+function bewaar(){
+  try {
+    localStorage.setItem(sleutel(), JSON.stringify({
+      t:Date.now(), UIT:S.UIT, GEZIEN:S.GEZIEN, TERUG:S.TERUG, WIJZ:S.WIJZ,
+      omzet:S.omzet, ziggo:S.ziggo,
+      ontvangst:S.ontvangst, afsluiting:S.afsluiting
+    }));
+  } catch (e){}
+}
+function haalTerug(){
+  try {
+    var r = JSON.parse(localStorage.getItem(sleutel()) || 'null');
+    if (!r) return 0;
+    S.UIT = r.UIT || {}; S.GEZIEN = r.GEZIEN || {}; S.TERUG = r.TERUG || {};
+    S.WIJZ = r.WIJZ || []; S.omzet = r.omzet || '';
+    S.ziggo = r.ziggo || ''; S.ontvangst = r.ontvangst || null; S.afsluiting = r.afsluiting || null;
+    return r.t || 0;
+  } catch (e){ return 0; }
+}
+
+/* ===========================================================================
+   DEEL 2 — DE CLUBKANT
+   =========================================================================== */
+
+/* De stempel. Vier standen, en hij staat nooit op groen zolang er iets open is. */
+function bonStand(){
+  var kv = kasVerschil();
+  if (S.afsluiting){
+    return kv
+      ? { soort:'rood', tekst:'Gesloten', bij:eur(Math.abs(kv)) + ' verschil' }
+      : { soort:'groen', tekst:'Gesloten', bij:tijd(S.afsluiting.tijd) };
+  }
+  if (alleFouten().length) return { soort:'rood', tekst:'Klopt niet', bij:'nakijken' };
+  if (!S.ontvangst){
+    var o = ongezien().length;
+    return { soort:'open', tekst:'Te ontvangen',
+      bij:o === lijst().length ? 'nog niets nagekeken' : o + ' van ' + lijst().length + ' open' };
+  }
+  if (gatenIn().length) return { soort:'open', tekst:'Nog open', bij:'wacht op intellen' };
+  if (omzetMplus() === null) return { soort:'open', tekst:'Nog open', bij:'wacht op de kas' };
+  return kv
+    ? { soort:'rood', tekst:'Verschil', bij:eur(Math.abs(kv)) }
+    : { soort:'groen', tekst:'Komt uit', bij:'tot op de euro' };
+}
+function stempelHTML(){
+  var b = bonStand();
+  return '<div class="stempel ' + b.soort + (S.stempelLandt ? ' land' : '') + '">'
+    + esc(b.tekst) + '<small>' + esc(b.bij) + '</small></div>';
+}
+function bonkop(titel){
+  return '<div class="bonkop"><div style="min-width:0">'
+    + '<h1 class="bontitel">' + esc(titel || 'Telbon') + '</h1>'
+    + '<div class="bonnr">' + esc(BON.nr) + '</div></div>'
+    + stempelHTML() + '</div>'
+    + '<p class="bonwie"><b>' + esc(BON.zaal) + ' · ' + esc(S.ruimte) + '</b><br>'
+    + esc(BON.show) + ' · ' + esc(BON.datum) + '</p>';
+}
+
+/* De ladder. Drie trappen, zoals in de eerste maquette — maar de eerste is nu
+   'ontvangen' in plaats van 'uitgeteld', want zij tellen niets uit. */
+function ladder(){
+  var L = lijst();
+  var o = ongezien().length, ig = gatenIn().length;
+  var omz = omzetMplus();
+
+  var trappen = [
+    {
+      naam:'Ontvangen en getekend', nr:1,
+      af:!!S.ontvangst, nu:!S.ontvangst,
+      onder: S.ontvangst
+        ? tijd(S.ontvangst.tijd) + ' · ' + initialen(S.ontvangst.crew) + ' / ' + initialen(S.ontvangst.ziggo)
+        : (o === L.length ? 'nog niets nagekeken'
+           : (L.length - o) + ' van ' + L.length + ' regels nagekeken'),
+      stand: S.ontvangst ? 'getekend' : 'open',
+      doel:'ctrl'
+    },
+    {
+      naam:'Ingeteld aan het eind', nr:2,
+      af:ig === 0 && !!S.ontvangst,
+      nu:!!S.ontvangst && ig > 0,
+      onder: ig === 0 && S.ontvangst
+        ? (S.afsluiting ? tijd(S.afsluiting.tijd) + ' · ' + initialen(S.afsluiting.ziggo)
+           : 'alle ' + L.length + ' regels geteld')
+        : (ig === L.length ? 'nog niets terug geteld'
+           : (L.length - ig) + ' van ' + L.length + ' regels geteld'),
+      stand: ig === 0 && S.ontvangst ? 'klaar' : (S.ontvangst ? 'open' : 'wacht'),
+      doel: S.ontvangst ? 'tellen' : null
+    },
+    {
+      naam:'Tegen MplusKASSA', nr:3,
+      af:omz !== null && ig === 0,
+      nu:ig === 0 && omz === null,
+      onder: omz === null
+        ? 'kassabedrag nog niet ingevuld'
+        : (kasVerschil() ? 'verschil van ' + eur(kasVerschil()) : 'de kas komt uit'),
+      stand: omz === null ? 'open' : (kasVerschil() ? 'verschil' : 'akkoord'),
+      let: omz !== null && ig === 0 && !!kasVerschil(),
+      doel: S.ontvangst && ig === 0 ? 'mplus' : null
+    }
+  ];
+
+  var h = '<div class="ladder">';
+  trappen.forEach(function(t){
+    var kan = !!t.doel;
+    h += '<button type="button" class="trap' + (t.af ? ' af' : '') + (t.nu ? ' nu' : '')
+      + (t.let ? ' let' : '') + '"'
+      + (kan ? ' data-ga="' + t.doel + '"' : ' disabled')
+      + '><span class="trapnr">' + (t.let ? '!' : (t.af ? IC.vink : t.nr)) + '</span>'
+      + '<span class="trapnaam">' + esc(t.naam) + '<small>' + esc(t.onder) + '</small></span>'
+      + '<span class="trapstand">' + esc(t.stand) + '</span>'
+      + (kan ? '<svg class="pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg>' : '')
+      + '</button>';
+  });
+  return h + '</div>';
+}
+
+/* De wijzigingen aan de uitkolom. Dit staat met opzet hoog op de bon en niet
+   ergens onderaan: het is het enige getal dat na het versturen nog verandert,
+   en dus het enige dat allebei de partijen kan verrassen. */
+function wijzigblok(stil){
+  if (!S.WIJZ.length) return '';
+  var open = nietGemeld();
+  var h = '<div class="aanvul' + (open.length ? '' : ' weg') + '">' + IC.plus + '<div>'
+    + '<b>' + S.WIJZ.length + (S.WIJZ.length === 1 ? ' wijziging' : ' wijzigingen')
+    + ' op de uitkolom</b>'
+    + '<p>' + (open.length
+        ? open.length + (open.length === 1 ? ' is' : ' zijn') + ' nog niet gemeld aan de crew. '
+          + 'Zolang dat niet gebeurd is rekent Eran met een ander getal dan jullie.'
+        : 'Alles is gemeld. De crew rekent met dezelfde getallen als jullie.')
+    + '</p>'
+    + '<div class="aanvullijst">';
+  S.WIJZ.forEach(function(w){
+    var r = regel(w.no), a = art(r.art);
+    var d = w.naar - w.van;
+    h += '<div class="aanvulregel"><i>' + esc(tijd(w.tijd)) + '</i>'
+      + '<span>' + esc(a.naam) + (a.maten.length > 1 ? ' · ' + esc(r.maat) : '')
+      + '<br><span class="veldlabel">' + esc(w.soort === 'aanvulling' ? 'later bijgekomen' : 'anders in de doos')
+      + ' · ' + esc(w.door) + (w.gemeld ? ' · gemeld ' + esc(tijd(w.gemeld)) : ' · niet gemeld')
+      + '</span></span>'
+      + '<b>' + w.van + ' → ' + w.naar + ' <small style="color:var(--inkt-2)">('
+      + (d > 0 ? '+' : '−') + Math.abs(d) + ')</small></b></div>';
+  });
+  h += '</div>';
+  /* De meldknop hoort bij de club. Op Erans kant is dit al gebeurd of juist
+     niet gebeurd — daar valt niets meer te versturen, alleen te zien. */
+  if (open.length && !stil){
+    h += '<div class="acties"><button type="button" class="tekstknop" data-meld="1">'
+      + IC.stuur + 'Nu melden aan de crew</button></div>';
+  }
+  return h + '</div></div>';
+}
+
+/* ---- de artikelmatrix ---------------------------------------------------
+   Drie regels onder elkaar: wat erin ging, wat terugkwam, wat dat zegt over
+   de verkoop, en wat dat aan verkoopprijs is. Alleen maten die meegaan staan
+   erin — een kolom met een streepje die nooit gevuld wordt is ruis. */
+function matrix(a){
+  var rr = a.regels.filter(function(r){ return meeW(r.no) > 0; });
+  if (!rr.length) return '';
+  var ru = somArt(a, uitW), rt = somArt(a, terW), rv = verkochtArt(a);
+
+  function cel(v, kl){
+    return '<td class="' + (v === null ? 'leeg ' : '') + (kl || '') + '">'
+      + (v === null ? '–' : v) + '</td>';
+  }
+
+  var h = '<div class="art"><div class="artkop">'
+    + '<h3 class="artnaam">' + esc(a.naam) + (a.sub ? '<i>' + esc(a.sub) + '</i>' : '') + '</h3>'
+    + '<span class="artprijs">' + eur(a.prijs) + '</span></div>'
+    + '<div class="matrix"><table class="mtab"><thead><tr><th scope="col"><span class="veldlabel">Maat</span></th>';
+  rr.forEach(function(r){ h += '<th scope="col">' + esc(r.maat) + '</th>'; });
+  h += '<th scope="col" class="tot">Totaal</th></tr></thead><tbody>';
+
+  h += '<tr class="ruit"><th scope="row">Mee</th>';
+  rr.forEach(function(r){
+    var gew = S.WIJZ.some(function(w){ return w.no === r.no; });
+    h += cel(uitW(r.no), gew ? 'fout' : '');
+  });
+  h += cel(ru.gat ? null : ru.som, 'tot') + '</tr>';
+
+  h += '<tr class="rterug"><th scope="row">Terug</th>';
+  rr.forEach(function(r){ h += cel(terW(r.no), regelFout(r.no) ? 'fout' : ''); });
+  h += cel(rt.gat ? null : rt.som, 'tot') + '</tr>';
+
+  h += '<tr class="rverkocht"><th scope="row">Verkocht</th>';
+  rr.forEach(function(r){ h += cel(verkochtRegel(r.no)); });
+  h += cel(rv.gat ? null : rv.som, 'tot') + '</tr>';
+
+  h += '</tbody></table></div>';
+
+  /* En de regel waar het artikel om draait: wat deze artikelen hebben
+     opgebracht als alles voor de volle prijs over de toonbank ging. */
+  if (!rv.gat){
+    h += '<div class="kassaregel"><span class="veldlabel">'
+      + rv.som + ' verkocht, tegen verkoopprijs</span>'
+      + '<b>' + eur(rv.som * a.prijs) + '</b></div>';
+  }
+  return h + '</div>';
+}
+
+/* ---- het eerste scherm van de club -------------------------------------
+   Geen leeg formulier dat vraagt wie je bent, maar een bon die al vol staat.
+   Dat is het hele verschil met de eerste maquette: ze zien meteen waar het
+   over gaat, en pas daarna wordt er iets van hen gevraagd. */
+function schermOpen(){
+  var L = lijst(), aan = artenMee();
+  var h = '<div class="blad">' + bonkop('Telbon')
+    + '<div class="leegvel" style="padding-top:18px">'
+    + '<h1>' + totaalMee() + ' stuks, ' + aan.length + ' artikelen</h1>'
+    + '<p class="uitleg">De crew heeft deze doos voor jullie klaargezet. Hij staat bij '
+    + 'jullie in consignatie: jullie verkopen, wij houden alleen bij wat ervan weg is. '
+    + 'Kijk eerst na of klopt wat erin zit, zet dan samen jullie naam eronder. Aan het '
+    + 'eind van de avond tel je in wat er over is.</p>'
+    + '<div class="leeglijnen">';
+  aan.forEach(function(a){
+    h += '<div class="leeglijn"><span class="veldlabel">' + esc(a.naam) + '</span>'
+      + '<em style="color:var(--inkt)">' + artMee(a) + '</em></div>';
+  });
+  h += '<div class="leeglijn" style="border-bottom:0"><span class="veldlabel" style="color:var(--inkt)">'
+    + 'Samen, tegen verkoopprijs</span><em style="color:var(--inkt)">' + eur(geldMee()) + '</em></div>'
+    + '</div>'
+    + '<p class="vraag">Wie kijkt het na?</p>'
+    + '<p class="vraagbij">Je eigen naam. Die komt onder de bon te staan naast die '
+    + 'van de crew. Wie later de telefoon overneemt vult daar zijn eigen naam in.</p>'
+    + '<input class="veld" id="naam" placeholder="Voor- en achternaam" autocomplete="name"'
+    + ' autocapitalize="words" value="' + esc(S.ziggo) + '">'
+    + '</div></div>'
+    + '<div class="voet"><button type="button" class="knop" id="start"'
+    + (S.ziggo.trim() ? '' : ' disabled') + '>' + L.length + ' regels nakijken' + IC.pijl + '</button></div>';
+  return h;
+}
+
+/* ---- de controle --------------------------------------------------------
+   Het scherm dat de eerste maquette niet had. Zij tellen niet uit, zij kijken
+   na. Dus geen klavier dat een getal vraagt, maar een lijst waar één tik
+   betekent 'gezien, klopt' en een tweede weg betekent 'nee, het is anders'.
+   Vier van de vijf avonden gaat dit in twintig tikken. */
+function schermCtrl(){
+  var L = lijst();
+  var o = ongezien().length, af = L.length - o;
+  var pct = Math.round(af / L.length * 100);
+  var fout = alleFouten();
+
+  var h = '<div class="telkop"><div class="rij"><div style="min-width:0">'
+    + '<h1 class="bontitel">Nakijken</h1>'
+    + '<div class="bonnr">' + esc(BON.nr) + ' · ' + esc(S.ruimte) + '</div></div>'
+    + '<button type="button" class="knop stil krimp" style="min-height:36px;font-size:13px;padding:0 11px" data-ga="bon">'
+    + 'De bon</button></div>'
+    + '<span class="balk"><i style="width:' + pct + '%"></i></span>'
+    + '<span class="vorder">' + af + ' / ' + L.length + ' nagekeken · ' + esc(S.ziggo || '?') + '</span></div>';
+
+  h += '<div class="blad" style="padding-top:12px">';
+  if (S.hersteld){
+    h += '<div class="bewaardbalk" style="padding:0 0 10px">Je controle van '
+      + esc(tijd(S.hersteld)) + ' staat er weer.</div>';
+    S.hersteld = 0;
+  }
+  h += '<p class="toel" style="margin-bottom:14px">Tik een regel aan als je hebt geteld dat '
+    + 'het klopt. Klopt het níét, houd hem dan ingedrukt — of tik op het aantal — om het '
+    + 'echte getal in te vullen. Dat gaat meteen als melding naar de crew.</p>';
+
+  ART.forEach(function(a){
+    var rr = a.regels.filter(function(r){ return meeW(r.no) > 0; });
+    if (!rr.length) return;
+    h += '<div class="sectie" style="margin-top:14px"><h2>' + esc(a.naam) + '</h2>'
+      + '<p class="toel">' + eur(a.prijs) + (a.sub ? ' · ' + esc(a.sub) : '') + '</p>';
+    rr.forEach(function(r){
+      var gez = !!S.GEZIEN[r.no];
+      var gew = S.WIJZ.filter(function(w){ return w.no === r.no; })[0];
+      h += '<div class="ctrlwrap' + (gez ? ' gezien' : '') + (gew ? ' anders' : '') + '">'
+        + '<button type="button" class="ctrl" data-gezien="' + r.no + '"'
+        + ' aria-pressed="' + (gez ? 'true' : 'false') + '">'
+        + '<span class="wat">' + esc(a.maten.length > 1 ? 'Maat ' + r.maat : 'Aantal')
+        + (gew ? '<small>bijgesteld van ' + gew.van + ' om ' + esc(tijd(gew.tijd)) + '</small>'
+           : (gez ? '<small>geteld en akkoord</small>' : '<small>nog niet nagekeken</small>')) + '</span>'
+        + '<span class="merk">' + (gez ? IC.vink : IC.cirkel) + '</span></button>'
+        + '<button type="button" class="ctrlnr" data-wijzig="' + r.no + '"'
+        + ' aria-label="Aantal bijstellen voor ' + esc(a.naam + ' ' + r.maat) + '">'
+        + '<span class="hoeveel">' + uitW(r.no) + '</span></button>'
+        + '</div>';
+    });
+    h += '</div>';
+  });
+
+  if (fout.length){
+    h += '<div class="melding" style="margin-top:16px">' + IC.let
+      + '<div><b>Niet mogelijk</b><p>' + fout.length
+      + (fout.length === 1 ? ' regel heeft' : ' regels hebben') + ' meer terug dan er in de doos ging.</p></div></div>';
+  }
+
+  h += '</div><div class="voet">'
+    + '<button type="button" class="knop stil krimp" data-alleszien="1">Alles klopt</button>'
+    + '<button type="button" class="knop" data-ga="teken-ontvangst"' + (o ? ' disabled' : '') + '>'
+    + IC.pen + (o ? o + ' nog open' : 'Ondertekenen') + '</button></div>';
+  return h;
+}
+
+/* ---- één maat bijstellen -----------------------------------------------
+   Dit is het enige scherm waar de uitkolom nog verandert. Het staat er met
+   opzet zwaar op: wat de bon zei, wat jij zegt, en dat de crew het hoort. */
+function schermWijzig(){
+  var r = regel(S.wijzigNo), a = art(r.art);
+  var bon = uitW(r.no);
+  var vers = S.VERS === null ? String(bon) : S.VERS;
+  var n = vers === '' ? null : parseInt(vers, 10);
+  var d = n === null ? null : n - bon;
+
+  var h = '<div class="telkop"><div class="rij"><div style="min-width:0">'
+    + '<h1 class="bontitel">Aantal bijstellen</h1>'
+    + '<div class="bonnr">' + esc(BON.nr) + ' · ' + esc(S.ziggo || '?') + '</div></div>'
+    + '<button type="button" class="knop stil krimp" style="min-height:36px;font-size:13px;padding:0 11px" data-ga="ctrl">'
+    + 'Terug</button></div></div>';
+
+  h += '<div class="midden"><div class="telart"><h1>' + esc(a.naam) + '</h1></div>'
+    + '<p class="telonder">' + esc(a.maten.length > 1 ? 'Maat ' + r.maat : 'Aantal')
+    + ' · ' + eur(a.prijs) + '</p>';
+
+  h += '<div class="som" style="margin-top:6px;border-top:0;padding-top:0">'
+    + '<div class="somrij"><span>Volgens de bon</span><b>' + bon + '</b></div>'
+    + '<div class="somrij groot"><span>Wat jij geteld hebt</span><b style="color:var(--accent)">'
+    + (vers === '' ? '–' : esc(vers)) + '</b></div>'
+    + (d ? '<div class="somrij ' + (d < 0 ? 'afwijk' : 'akkoord') + '"><span>Verschil<small>'
+        + (d < 0 ? 'er zit minder in de doos dan de bon zegt'
+           : 'er zit meer in de doos dan de bon zegt')
+        + '</small></span><b>' + (d > 0 ? '+' : '−') + Math.abs(d) + '</b></div>' : '')
+    + '</div>';
+
+  h += '<p class="vraag" style="margin-top:18px">Hoe komt dat?</p>'
+    + '<div class="keus">'
+    + '<button type="button" class="' + (S.wijzigSoort === 'correctie' ? 'aan' : '') + '" data-soort="correctie">'
+    + '<b>Anders in de doos</b><i>bij ontvangst geteld</i></button>'
+    + '<button type="button" class="' + (S.wijzigSoort === 'aanvulling' ? 'aan' : '') + '" data-soort="aanvulling">'
+    + '<b>Later bijgekomen</b><i>crew bracht meer</i></button>'
+    + '</div>'
+    + '<p class="toel" style="margin-top:10px">Vastleggen zet dit als eigen regel op de bon, '
+    + 'met de tijd en je naam, en zet een bericht aan de crew klaar. De oorspronkelijke '
+    + ' ' + bon + ' blijft zichtbaar — er wordt niets stil overschreven.</p>';
+
+  h += '</div>';
+  h += '<div class="klavier">'
+    + [1,2,3].map(function(x){ return '<button type="button" data-cijfer="' + x + '">' + x + '</button>'; }).join('')
+    + '<button type="button" data-wis="1" aria-label="Laatste cijfer wissen">' + IC.wis + '</button>'
+    + [4,5,6].map(function(x){ return '<button type="button" data-cijfer="' + x + '">' + x + '</button>'; }).join('')
+    + '<button type="button" class="hulp" data-geen="1">geen</button>'
+    + [7,8,9].map(function(x){ return '<button type="button" data-cijfer="' + x + '">' + x + '</button>'; }).join('')
+    + '<button type="button" class="door" data-wijzigklaar="1"' + (d ? '' : ' disabled') + '>'
+    + IC.vink + '<span>Vast-<br>leggen</span></button>'
+    + '<button type="button" class="nul" data-cijfer="0">0</button>'
+    + '<button type="button" class="terug" data-ga="ctrl">' + IC.terug + 'terug</button>'
+    + '</div>';
+  return h;
+}
+
+/* ---- het telscherm aan het eind ----------------------------------------
+   Van standcount overgenomen, niet opnieuw bedacht: eigen klavier, één maat
+   per regel, een streepje tegenover een nul, bewaren bij elke aanslag. Wat
+   erbij staat is hoeveel er in de doos ging — je telt nooit in het luchtledige. */
+function schermTellen(){
+  var aan = artenMee();
+  var a = aan[S.STAP];
+  if (!a) return schermBon();
+  var rr = a.regels.filter(function(r){ return meeW(r.no) > 0; });
+  if (S.MAAT >= rr.length) S.MAAT = 0;
+  var L = lijst();
+  var af = L.length - gatenIn().length;
+  var pct = Math.round(af / L.length * 100);
+
+  var h = '<div class="telkop"><div class="rij"><div style="min-width:0">'
+    + '<h1 class="bontitel">Intellen</h1>'
+    + '<div class="bonnr">' + esc(BON.nr) + ' · ' + esc(S.ruimte) + '</div></div>'
+    + '<button type="button" class="knop stil krimp" style="min-height:36px;font-size:13px;padding:0 11px" data-ga="bon">'
+    + 'De bon</button></div>'
+    + '<span class="balk"><i style="width:' + pct + '%"></i></span>'
+    + '<span class="vorder">' + af + ' / ' + L.length + ' regels · ' + esc(S.ziggo || '?') + '</span></div>';
+
+  h += '<div class="midden">';
+  if (S.hersteld){
+    h += '<div class="bewaardbalk">Je telling van ' + esc(tijd(S.hersteld)) + ' staat er weer.</div>';
+    S.hersteld = 0;
+  }
+  h += '<div class="telart">'
+    + '<button type="button" class="pijlknop" data-vorigart="1" aria-label="Vorig artikel"'
+    + (S.STAP === 0 ? ' disabled' : '') + '>' + IC.terug + '</button>'
+    + '<h1>' + esc(a.naam) + '</h1>'
+    + '<span class="teller">' + (S.STAP + 1) + '/' + aan.length + '</span>'
+    + '<button type="button" class="pijlknop" data-volgart="1" aria-label="Volgend artikel"'
+    + (S.STAP >= aan.length - 1 ? ' disabled' : '') + '>' + IC.pijl + '</button></div>';
+  h += '<p class="telonder">' + (a.sub ? esc(a.sub) + ' · ' : '') + eur(a.prijs)
+    + ' · hoeveel komt er terug?</p>';
+
+  rr.forEach(function(r, i){
+    var v = S.TERUG[r.no];
+    var gevuld = v !== undefined && v !== '';
+    var fout = regelFout(r.no);
+    var u = uitW(r.no);
+    var onder = fout
+      ? 'meer terug dan de ' + u + ' die erin ging'
+      : 'erin: ' + u + (gevuld ? ' · verkocht: ' + (u - parseInt(v, 10)) : '');
+    h += '<button type="button" class="regel' + (i === S.MAAT ? ' hier' : '')
+      + (S.LANDT === i ? ' landt' : '') + '" data-maat="' + i + '"'
+      + ' aria-label="' + esc(rr.length > 1 ? 'Maat ' + r.maat : 'Aantal')
+      + (gevuld ? ', ' + esc(v) + ' geteld' : ', nog niet geteld') + '">'
+      + '<span class="maat">' + esc(rr.length > 1 ? r.maat : 'Aantal')
+      + '<small' + (fout ? ' class="fout"' : '') + '>' + esc(onder) + '</small></span>'
+      + '<span class="waarde ' + (fout ? 'fout' : (gevuld ? 'af' : 'leeg')) + '">'
+      + (gevuld ? esc(v) : '–') + '</span>'
+      + '<span class="vink' + (gevuld && !fout ? ' aan' : '') + '">' + IC.vink + '</span></button>';
+  });
+
+  h += '<button type="button" class="alles' + (S.ZEKER ? ' zeker' : '') + '" data-alles="1">'
+    + (S.ZEKER
+       ? 'Zeker? Tik nog eens — alles wordt 0'
+       : IC.doos + 'Niets van over')
+    + '</button></div>';
+
+  return h + klavier(a, rr);
+}
+
+function klavier(a, rr){
+  var aan = artenMee();
+  var laatsteMaat = (S.MAAT >= rr.length - 1);
+  var laatsteArt = (S.STAP >= aan.length - 1);
+  var klaar = laatsteMaat && laatsteArt;
+  var label = klaar ? 'Klaar' : (laatsteMaat ? 'Volgend<br>artikel' : 'Volgende<br>maat');
+  var t = function(n){ return '<button type="button" data-cijfer="' + n + '">' + n + '</button>'; };
+  return '<div class="klavier">'
+    + t(1) + t(2) + t(3)
+    + '<button type="button" data-wis="1" aria-label="Laatste cijfer wissen">' + IC.wis + '</button>'
+    + t(4) + t(5) + t(6)
+    + '<button type="button" class="hulp" data-geen="1">geen</button>'
+    + t(7) + t(8) + t(9)
+    + '<button type="button" class="door" data-door="1">' + (klaar ? IC.vink : IC.ga)
+    + '<span>' + label + '</span></button>'
+    + '<button type="button" class="nul" data-cijfer="0">0</button>'
+    + '<button type="button" class="terug" data-vorige="1" aria-label="Vorige regel"'
+    + (S.STAP === 0 && S.MAAT === 0 ? ' disabled' : '') + '>' + IC.terug + 'terug</button>'
+    + '</div>';
+}
+
+/* ---- MplusKASSA: één bedrag, en de aanslagen -----------------------------
+   Eén getal. MplusKASSA geeft de omzet van deze ruimte terug en verder niets:
+   geen aanslagen per artikel, geen regels. Dus staat hier één bedrag tegenover
+   één som, en daaronder het lijstje waarmee je een verschil in de gang
+   doorloopt in plaats van erover te rekenen. */
+function schermMplus(){
+  var g = geldTelling();
+  var omz = omzetMplus(), kv = kasVerschil();
+
+  var h = '<div class="blad">'
+    + '<div class="bonkop"><div style="min-width:0">'
+    + '<h1 class="bontitel">Tegen MplusKASSA</h1>'
+    + '<div class="bonnr">' + esc(BON.nr) + ' · ' + esc(S.ruimte) + '</div></div>'
+    + '<div class="stempel open">Invullen<small>'
+    + (omz === null ? 'één bedrag' : 'rond') + '</small></div></div>';
+
+  /* Eerst het geld. Dat is één getal en het hoort als eerste te staan. */
+  h += '<div class="sectie"><h2>De kas</h2>'
+    + '<p class="toel">Eén bedrag uit MplusKASSA: de omzet van deze ruimte op deze avond. '
+    + 'Daarnaast staat wat de telling zegt dat er verkocht is.</p>'
+    + '<div class="geld">'
+    + '<div class="geldrij"><span>Omzet volgens MplusKASSA<small>het bedrag uit het rapport</small></span>'
+    + '<input type="text" inputmode="numeric" pattern="[0-9]*" id="omzet" size="7"'
+    + ' aria-label="Omzet volgens MplusKASSA in euro" value="' + esc(S.omzet) + '" placeholder="0"></div>'
+    + '<div class="geldrij"><span>Verkocht volgens de telling<small>'
+    + (g.gat ? 'nog niet alle regels geteld' : 'uit de doos × verkoopprijs') + '</small></span>'
+    + '<b>' + (g.gat ? '–' : eur(g.bedrag)) + '</b></div>'
+    + '<div class="geldrij slot ' + (kv === null ? 'open' : (kv ? 'afwijk' : 'akkoord')) + '">'
+    + '<span>' + (kv === null ? 'Verschil' : (kv ? 'Verschil' : 'De kas komt uit'))
+    + (kv ? '<small>' + (kv < 0
+        ? 'de kassa zag minder geld dan er aan spullen uit de doos is'
+        : 'de kassa zag meer geld dan er aan spullen uit de doos is') + '</small>' : '')
+    + '</span><b>' + (kv === null ? '–' : eur(kv)) + '</b></div>'
+    + '</div></div>';
+
+  /* Waar het verschil vandaan kan komen. Geen rekenwerk — dit is het lijstje
+     dat je in de gang doorloopt voordat je allebei je naam zet. */
+  if (kv){
+    h += '<div class="sectie"><h2>Voordat je tekent</h2>'
+      + '<p class="toel">Een verschil van ' + eur(Math.abs(kv)) + ' heeft meestal één van '
+      + 'deze oorzaken. MplusKASSA geeft per artikel niets terug, dus dit is waar het '
+      + 'uitzoeken gebeurt: hier, met z\'n tweeën, nu het nog vers is.</p>'
+      + '<ul style="margin:0;padding-left:19px;font-size:13.5px;color:var(--inkt-2);line-height:1.6">'
+      + '<li>Een artikel op de knop van een ander artikel afgerekend — scheelt het prijsverschil.</li>'
+      + '<li>Iets weggegeven of geruild zonder dat het is aangeslagen.</li>'
+      + '<li>Een doos die later is bijgebracht en niet is bijgesteld op de bon.</li>'
+      + '<li>Een maat die bij het intellen verkeerd is geteld.</li>'
+      + '</ul></div>';
+  }
+
+  h += '</div><div class="voet">'
+    + '<button type="button" class="knop stil krimp" data-ga="bon">' + IC.terug + '</button>'
+    + '<button type="button" class="knop" data-ga="bon"' + (omz === null ? ' disabled' : '') + '>'
+    + 'Naar de bon' + IC.pijl + '</button></div>';
+  return h;
+}
+
+/* ---- de bon: waar ze samen naar kijken --------------------------------- */
+function schermBon(){
+  var L = lijst(), aan = artenMee();
+  var o = ongezien().length, ig = gatenIn().length;
+  var fout = alleFouten();
+  var g = geldTelling(), omz = omzetMplus(), kv = kasVerschil();
+
+  var h = '<div class="blad">' + bonkop('Telbon') + ladder();
+
+  if (fout.length){
+    var f0 = fout[0], a0 = art(f0.art);
+    h += '<div class="melding" style="margin-top:16px">' + IC.let
+      + '<div><b>' + fout.length + (fout.length === 1 ? ' regel kan niet' : ' regels kunnen niet')
+      + '</b><p>Bij <b>' + esc(a0.naam) + ' · ' + esc(f0.maat) + '</b> staat '
+      + terW(f0.no) + ' terug tegenover ' + uitW(f0.no) + ' die erin ging. Er kan niet meer '
+      + 'terugkomen dan er is meegegeven. Tel die maat opnieuw, of stel de uitkolom bij — '
+      + 'dan hoort de crew het ook.</p>'
+      + '<div class="acties">'
+      + '<button type="button" class="tekstknop" data-naarregel="' + f0.no + '">'
+      + IC.pen + 'Opnieuw tellen</button>'
+      + '<button type="button" class="tekstknop" data-wijzig="' + f0.no + '">'
+      + IC.plus + 'Uitkolom bijstellen</button></div></div></div>';
+  }
+
+  h += wijzigblok();
+
+  h += '<div class="sectie"><h2>De goederen</h2>'
+    + '<p class="toel">' + aan.length + ' artikelen, ' + L.length + ' regels. '
+    + 'Zijwaarts schuiven als de maten niet passen.</p>';
+  aan.forEach(function(a){ h += matrix(a); });
+  h += '</div>';
+
+  /* De slotsom in stuks. */
+  var tu = totaal(uitW), tt = totaal(terW), tv = tu - tt;
+  h += '<div class="som">'
+    + '<div class="somrij"><span>In de doos</span><b>' + tu + '</b></div>'
+    + '<div class="somrij"><span>Over, teruggegeven</span><b>' + (ig ? '–' : tt) + '</b></div>'
+    + '<div class="somrij groot"><span>Verkocht volgens de telling</span><b>'
+    + (ig ? '–' : tv) + '</b></div>'
+    + '</div>';
+
+  /* En dan het geld. Dit is de regel waar hij en zij het eigenlijk over hebben. */
+  h += '<div class="sectie"><h2>De kas</h2>'
+    + '<p class="toel">Eén bedrag uit MplusKASSA tegenover één som uit de telling. '
+    + 'Klopt dit, dan is de avond rond, ook als er op een artikel iets verschoven is.</p>'
+    + '<div class="geld">'
+    + '<div class="geldrij"><span>Verkocht volgens de telling</span><b>'
+    + (g.gat ? '–' : eur(g.bedrag)) + '</b></div>'
+    + '<div class="geldrij"><span>Omzet volgens MplusKASSA</span><b'
+    + (omz === null ? ' style="color:var(--inkt-3)"' : '') + '>'
+    + (omz === null ? '–' : eur(omz)) + '</b></div>'
+    + '<div class="geldrij slot ' + (kv === null ? 'open' : (kv ? 'afwijk' : 'akkoord')) + '">'
+    + '<span>' + (kv === null ? 'Verschil' : (kv ? 'Verschil' : 'De kas komt uit'))
+    + (kv === null ? '<small>het kassabedrag staat er nog niet</small>'
+       : (kv ? '<small>' + (kv < 0 ? eur(-kv) + ' minder in de kassa dan er aan spullen weg is'
+                            : eur(kv) + ' meer in de kassa dan er aan spullen weg is') + '</small>'
+          : '<small>tot op de euro</small>'))
+    + '</span><b>' + (kv === null ? '–' : eur(kv)) + '</b></div></div>';
+  if (omz === null){
+    h += '<div class="rij" style="margin-top:11px"><button type="button" class="tekstknop" data-ga="mplus">'
+      + IC.euro + 'Kassabedrag invullen</button></div>';
+  }
+  h += '</div>';
+
+  h += '<div class="sectie"><h2>Ondertekening</h2>'
+    + '<p class="toel">Twee namen per moment: wie afgaf en wie ontving. '
+    + 'Zonder beide is de bon niet rond.</p>' + tekenpaar() + '</div>';
+
+  h += '</div>';
+
+  h += '<div class="voet">';
+  if (!S.ontvangst){
+    h += '<button type="button" class="knop stil krimp" data-ga="open">' + IC.terug + '</button>'
+      + '<button type="button" class="knop" data-ga="ctrl">'
+      + (o === L.length ? 'Nakijken beginnen' : 'Nakijken afmaken') + IC.pijl + '</button>';
+  } else if (ig > 0){
+    h += '<button type="button" class="knop" data-ga="tellen">'
+      + (ig === L.length ? 'Intellen beginnen' : 'Intellen afmaken') + IC.pijl + '</button>';
+  } else if (omz === null){
+    h += '<button type="button" class="knop" data-ga="mplus">' + IC.euro + 'Kassa invullen</button>';
+  } else if (!S.afsluiting){
+    h += '<button type="button" class="knop" data-ga="teken-afsluiting">' + IC.pen + 'Bon afsluiten</button>';
+  } else {
+    h += '<button type="button" class="knop' + (S.verzonden ? ' laadknop' : '') + '" data-stuur="1">'
+      + (S.verzonden ? IC.draai.replace('<svg', '<svg class="spin"') + 'Versturen\u2026'
+         : IC.stuur + 'Terugsturen naar de crew') + '</button>';
+  }
+  return h + '</div>';
+}
+
+function tekenpaar(){
+  function vak(titel, moment, rol){
+    if (!moment){
+      return '<div class="tekenvak"><span class="veldlabel">' + esc(titel) + '</span>'
+        + '<div class="wie" style="color:var(--inkt-3)">Nog niet ondertekend</div>'
+        + '<div class="krabbel leeg">wacht op een handtekening</div></div>';
+    }
+    var naam = rol === 'crew' ? moment.crew : moment.ziggo;
+    var krab = rol === 'crew' ? moment.krabbelCrew : moment.krabbelZiggo;
+    return '<div class="tekenvak"><span class="veldlabel">' + esc(titel) + '</span>'
+      + '<div class="wie">' + esc(naam) + '</div>'
+      + '<div class="wanneer">' + esc(tijd(moment.tijd)) + ' · ' + esc(BON.datum) + '</div>'
+      + '<div class="krabbel">' + (krab ? '<img src="' + krab + '" alt="Handtekening van ' + esc(naam) + '">' : '') + '</div></div>';
+  }
+  var h = '<div class="tekenpaar">';
+  h += vak('Ontvangst · afgegeven door', S.ontvangst, 'crew');
+  h += vak('Ontvangst · nagekeken door', S.ontvangst, 'ziggo');
+  h += vak('Afsluiting · teruggegeven door', S.afsluiting, 'ziggo');
+  h += vak('Afsluiting · teruggenomen door', S.afsluiting, 'crew');
+  return h + '</div>';
+}
+
+/* ---- het ondertekenblad ------------------------------------------------- */
+var KRABBEL = { crew:null, ziggo:null, wie:'ziggo' };
+
+function schermOnderteken(){
+  var sluit = S.teken === 'afsluiting';
+  var tu = totaal(uitW), tt = totaal(terW);
+  var fout = alleFouten();
+  var g = geldTelling(), kv = kasVerschil();
+
+  var h = '<div class="blad">'
+    + '<div class="bonkop"><div style="min-width:0">'
+    + '<h1 class="bontitel">' + (sluit ? 'Bon afsluiten' : 'Ontvangst ondertekenen') + '</h1>'
+    + '<div class="bonnr">' + esc(BON.nr) + ' · ' + esc(S.ruimte) + '</div></div>'
+    + '<div class="stempel open">Te tekenen<small>' + tijd(nu()) + '</small></div></div>';
+
+  if (fout.length){
+    h += '<div class="melding" style="margin-top:16px">' + IC.let
+      + '<div><b>Zo kan de bon niet dicht</b><p>' + fout.length
+      + (fout.length === 1 ? ' regel heeft' : ' regels hebben')
+      + ' meer terug dan er in de doos ging. Zet dat eerst recht — een handtekening '
+      + 'onder een onmogelijk getal helpt geen van beiden.</p>'
+      + '<div class="acties"><button type="button" class="tekstknop" data-ga="bon">'
+      + IC.pijl + 'Naar de bon</button></div></div></div>';
+  }
+
+  h += '<p class="verklaring" style="margin-top:16px">';
+  if (!sluit){
+    h += 'Hieronder staat <b>' + tu + ' stuks</b> in <b>' + artenMee().length + ' artikelen</b>, '
+      + 'tegen verkoopprijs <b>' + eur(geldMee()) + '</b>, nagekeken en in ontvangst genomen '
+      + 'door de ' + esc(S.ruimte) + '. '
+      + (S.WIJZ.length
+         ? 'Op ' + S.WIJZ.length + (S.WIJZ.length === 1 ? ' regel' : ' regels')
+           + ' is het aantal bijgesteld; dat staat met tijd en naam op de bon.'
+         : 'Alle regels zijn nageteld en kloppen met wat de crew opgaf.');
+  } else {
+    h += 'Hieronder komt <b>' + tt + ' stuks</b> terug van de ' + esc(S.ruimte) + '. '
+      + 'Verkocht volgens de telling: <b>' + (tu - tt) + ' stuks</b>, '
+      + '<b>' + (g.gat ? '–' : eur(g.bedrag)) + '</b>. '
+      + (kv
+         ? 'MplusKASSA zegt ' + eur(omzetMplus()) + '. Dat loopt ' + eur(Math.abs(kv))
+           + ' uiteen. Ondertekenen betekent niet dat iemand schuld neemt — het betekent '
+           + 'dat jullie allebei dit getal hebben gezien, met jullie er nog bij.'
+         : 'MplusKASSA zegt hetzelfde bedrag. De kas is rond.');
+  }
+  h += '</p>';
+
+  h += '<div class="som" style="margin-top:0">'
+    + '<div class="somrij"><span>In de doos</span><b>' + tu + '</b></div>';
+  if (sluit){
+    h += '<div class="somrij"><span>Over, teruggegeven</span><b>' + tt + '</b></div>'
+      + '<div class="somrij groot"><span>Verkocht volgens de telling</span><b>' + (tu - tt) + '</b></div>'
+      + '<div class="somrij"><span>Tegen verkoopprijs</span><b style="font-size:16px">'
+      + (g.gat ? '–' : eur(g.bedrag)) + '</b></div>'
+      + '<div class="somrij' + (kv ? ' afwijk' : ' akkoord') + '">'
+      + '<span>Omzet volgens MplusKASSA</span><b>' + eur(omzetMplus()) + '</b></div>';
+  }
+  h += '</div>';
+
+  var klaarCrew = !!KRABBEL.crew;
+  h += '<div class="sectie"><h2>'
+    + (KRABBEL.wie === 'ziggo'
+       ? (sluit ? 'Teruggegeven door · ' + esc(BON.zaal) : 'Nagekeken door · ' + esc(BON.zaal))
+       : (sluit ? 'Teruggenomen door · crew' : 'Afgegeven door · crew'))
+    + '</h2>'
+    + '<p class="toel">' + (KRABBEL.wie === 'ziggo'
+        ? esc(S.ziggo || 'de medewerker van de zaal') + ' zet hier zijn naam.'
+        : esc(BON.crew) + ' zet hier zijn naam. Geef de telefoon even over.')
+    + '</p>'
+    + '<canvas class="tekenveld" id="doek" aria-label="Tekenveld voor de handtekening"></canvas>'
+    + '<div class="tekenlijn"></div>'
+    + '<p class="tekenhint">Teken met je vinger op de lijn</p>'
+    + '<div class="rij" style="margin-top:4px">'
+    + '<button type="button" class="tekstknop" data-leegdoek="1">Opnieuw</button>'
+    + '<span style="flex:1 1 auto"></span>'
+    + '<span class="veldlabel">' + (klaarCrew ? '1' : '0') + ' van 2 getekend</span>'
+    + '</div></div>';
+
+  h += '</div><div class="voet">'
+    + '<button type="button" class="knop stil krimp" data-ga="bon">' + IC.terug + '</button>'
+    + '<button type="button" class="knop" id="tekenklaar"' + (fout.length ? ' disabled' : '') + '>'
+    + IC.pen + (KRABBEL.wie === 'ziggo' ? 'Vastleggen en overgeven' : 'Bon vastleggen') + '</button>'
+    + '</div>';
+  return h;
+}
+
+function coderegel(){
+  function paren(tab){
+    var p = [];
+    lijst().forEach(function(r){
+      var v = tab[r.no];
+      if (v !== undefined && v !== '') p.push(r.no + ':' + v);
+    });
+    return p.join(',');
+  }
+  return 'BCB2|' + BON.nr + '|' + BON.iso
+    + '|' + S.ruimte.replace(/\s+/g, '').toUpperCase()
+    + '|U:' + paren(S.UIT)
+    + '|T:' + paren(S.TERUG)
+    + '|K:' + (omzetMplus() === null ? '' : omzetMplus())
+    /* De bijstellingen gaan mee als regel, niet als aantal. Een "W:1" zegt dat
+       er iets veranderd is maar niet wat, en dan moet de crew alsnog bellen. */
+    + '|W:' + S.WIJZ.map(function(w){
+        return w.no + ':' + w.van + ':' + w.naar + ':' + (w.soort === 'aanvulling' ? 'a' : 'c')
+          + ':' + (w.gemeld ? '1' : '0');
+      }).join(',')
+    + '|G:' + ongezien().length
+    + '|' + initialen(BON.crew) + '/' + initialen(S.ziggo);
+}
+
+/* ---- de berichten die de deur uit gaan ---------------------------------
+   Twee, en ze zijn met opzet kort. Een WhatsApp met twintig regels wordt niet
+   gelezen; dit zijn er vier, en het getal dat telt staat vooraan. */
+function meldBericht(){
+  var open = nietGemeld();
+  var r0 = open.map(function(w){
+    var r = regel(w.no), a = art(r.art);
+    return (w.naar > w.van ? '+' : '−') + Math.abs(w.naar - w.van) + ' ' + a.naam
+      + (a.maten.length > 1 ? ' ' + r.maat : '') + ' (' + w.van + ' → ' + w.naar + ')';
+  });
+  return [
+    'Telbon ' + BON.nr + ' — ' + S.ruimte + ' bijgesteld',
+    BON.show + ' · ' + tijd(nu()) + ' · ' + (S.ziggo || 'club'),
+    '',
+    r0.join('\n'),
+    '',
+    'Staat met tijd en naam op de bon.'
+  ].join('\n');
+}
+function slotBericht(){
+  var kv = kasVerschil();
+  return [
+    'Telbon ' + BON.nr + ' — ' + S.ruimte,
+    BON.show + ' · ' + BON.datum,
+    'Mee ' + totaal(uitW) + ' · terug ' + totaal(terW) + ' · verkocht ' + (totaal(uitW) - totaal(terW)),
+    'Kas: MplusKASSA ' + (omzetMplus() === null ? '–' : eur(omzetMplus()))
+      + ' tegen ' + (geldTelling().gat ? '–' : eur(geldTelling().bedrag))
+      + (kv ? ' — ' + eur(Math.abs(kv)) + ' verschil' : ' — komt uit'),
+    'Getekend door ' + (S.afsluiting ? S.afsluiting.ziggo + ' en ' + S.afsluiting.crew : '—'),
+    '',
+    coderegel()
+  ].join('\n');
+}
+
+/* ===========================================================================
+   DEEL 4 — HET TEKENEN EN DE KNOPEN
+   =========================================================================== */
+function teken(){
+  var app = document.getElementById('app');
+  var vast = (S.scherm === 'tellen' || S.scherm === 'wijzig');
+  app.className = 'scherm' + (vast ? ' vast' : '');
+  var h;
+  if (S.scherm === 'open') h = '<div class="vel">' + schermOpen() + '</div>';
+  else if (S.scherm === 'ctrl') h = '<div class="vel">' + schermCtrl() + '</div>';
+  else if (S.scherm === 'wijzig') h = '<div class="vel">' + schermWijzig() + '</div>';
+  else if (S.scherm === 'tellen') h = '<div class="vel">' + schermTellen() + '</div>';
+  else if (S.scherm === 'onderteken') h = '<div class="vel">' + schermOnderteken() + '</div>';
+  else if (S.scherm === 'mplus') h = '<div class="vel">' + schermMplus() + '</div>';
+  else h = '<div class="vel">' + schermBon() + '</div>';
+  app.innerHTML = h;
+  S.LANDT = null;
+  S.stempelLandt = false;
+  if (S.scherm === 'onderteken') doekOp();
+  koppel();
+}
+
+/* ---- het klavier -------------------------------------------------------- */
+function huidigeRegels(){
+  var a = artenMee()[S.STAP];
+  if (!a) return [];
+  return a.regels.filter(function(r){ return meeW(r.no) > 0; });
+}
+function regelNu(){
+  if (S.scherm === 'wijzig') return regel(S.wijzigNo);
+  return huidigeRegels()[S.MAAT] || null;
+}
+function cijfer(n){
+  var r = regelNu(); if (!r) return;
+  S.ZEKER = false;
+  var v = (S.VERS === null ? '' : S.VERS) + String(n);
+  if (v.length > 4) return;
+  S.VERS = v.replace(/^0+(?=\d)/, '');
+  if (S.scherm === 'tellen'){ S.TERUG[r.no] = S.VERS; S.LANDT = S.MAAT; bewaar(); }
+  teken();
+}
+function wis(){
+  var r = regelNu(); if (!r) return;
+  S.ZEKER = false;
+  var v = S.VERS === null
+    ? String(S.scherm === 'wijzig' ? uitW(r.no) : (S.TERUG[r.no] == null ? '' : S.TERUG[r.no]))
+    : S.VERS;
+  S.VERS = v.slice(0, -1);
+  if (S.scherm === 'tellen'){
+    if (S.VERS === '') delete S.TERUG[r.no]; else S.TERUG[r.no] = S.VERS;
+    bewaar();
+  }
+  teken();
+}
+function geen(){
+  var r = regelNu(); if (!r) return;
+  S.ZEKER = false; S.VERS = '0';
+  if (S.scherm === 'tellen'){ S.TERUG[r.no] = '0'; S.LANDT = S.MAAT; bewaar(); return door(); }
+  teken();
+}
+function door(){
+  var rr = huidigeRegels();
+  var aan = artenMee();
+  S.VERS = null; S.ZEKER = false;
+  if (S.MAAT < rr.length - 1){ S.MAAT++; }
+  else if (S.STAP < aan.length - 1){ S.STAP++; S.MAAT = 0; }
+  else { S.scherm = 'bon'; bewaar(); return teken(); }
+  window.scrollTo(0, 0);
+  teken();
+}
+function vorige(){
+  S.VERS = null; S.ZEKER = false;
+  if (S.MAAT > 0) S.MAAT--;
+  else if (S.STAP > 0){
+    S.STAP--;
+    S.MAAT = Math.max(0, huidigeRegels().length - 1);
+  } else return;
+  window.scrollTo(0, 0);
+  teken();
+}
+function alles(){
+  if (!S.ZEKER){ S.ZEKER = true; return teken(); }
+  huidigeRegels().forEach(function(r){ S.TERUG[r.no] = '0'; });
+  S.ZEKER = false; S.VERS = null;
+  bewaar(); teken();
+}
+function naarTellen(){
+  S.scherm = 'tellen'; S.VERS = null; S.ZEKER = false;
+  /* begin bij het eerste artikel dat nog een gat heeft */
+  var aan = artenMee(), gevonden = false;
+  for (var i = 0; i < aan.length && !gevonden; i++){
+    var rr = aan[i].regels.filter(function(r){ return meeW(r.no) > 0; });
+    for (var j = 0; j < rr.length; j++){
+      if (terW(rr[j].no) === null){ S.STAP = i; S.MAAT = j; gevonden = true; break; }
+    }
+  }
+  if (!gevonden){ S.STAP = 0; S.MAAT = 0; }
+  teken();
+}
+function naarRegel(no){
+  var r = regel(no), aan = artenMee();
+  for (var i = 0; i < aan.length; i++){
+    if (aan[i].id !== r.art) continue;
+    var rr = aan[i].regels.filter(function(x){ return meeW(x.no) > 0; });
+    for (var j = 0; j < rr.length; j++) if (rr[j].no === no){ S.STAP = i; S.MAAT = j; }
+  }
+  S.scherm = 'tellen'; S.VERS = null; teken();
+}
+function naarWijzig(no){
+  S.wijzigNo = no; S.VERS = null;
+  S.wijzigSoort = S.ontvangst ? 'aanvulling' : 'correctie';
+  S.scherm = 'wijzig'; teken();
+}
+/* Vastleggen van een bijstelling. De oude waarde blijft in de regel staan —
+   dat is het hele punt van een bon. */
+function wijzigKlaar(){
+  var r = regel(S.wijzigNo);
+  var van = uitW(r.no);
+  var naar = S.VERS === null ? van : parseInt(S.VERS || '0', 10);
+  if (naar === van){ S.scherm = 'ctrl'; return teken(); }
+  S.UIT[r.no] = String(naar);
+  S.GEZIEN[r.no] = true;
+  S.WIJZ.push({ tijd:Date.now(), no:r.no, van:van, naar:naar,
+    door:S.ziggo || 'club', soort:S.wijzigSoort, gemeld:0 });
+  S.VERS = null; S.scherm = 'ctrl';
+  bewaar(); teken();
+}
+function meldNu(){
+  var t = Date.now();
+  var txt = meldBericht();
+  S.WIJZ.forEach(function(w){ if (!w.gemeld) w.gemeld = t; });
+  bewaar();
+  window.location.href = 'https://wa.me/' + BON.tel + '?text=' + encodeURIComponent(txt);
+  teken();
+}
+function ga(waar){
+  if (waar === 'tellen') return naarTellen();
+  if (waar === 'teken-ontvangst'){ S.teken = 'ontvangst'; KRABBEL = { crew:null, ziggo:null, wie:'ziggo' };
+    S.scherm = 'onderteken'; return teken(); }
+  if (waar === 'teken-afsluiting'){ S.teken = 'afsluiting'; KRABBEL = { crew:null, ziggo:null, wie:'ziggo' };
+    S.scherm = 'onderteken'; return teken(); }
+  S.scherm = waar; teken();
+}
+
+/* ---- de handtekening ---------------------------------------------------- */
+var doek = null, dctx = null, tekent = false, ietsGetekend = false;
+function doekOp(){
+  doek = document.getElementById('doek');
+  if (!doek) return;
+  var r = doek.getBoundingClientRect();
+  var dpr = Math.min(window.devicePixelRatio || 1, 3);
+  doek.width = Math.round(r.width * dpr);
+  doek.height = Math.round(r.height * dpr);
+  dctx = doek.getContext('2d');
+  dctx.scale(dpr, dpr);
+  dctx.lineWidth = 2.2; dctx.lineCap = 'round'; dctx.lineJoin = 'round';
+  dctx.strokeStyle = getComputedStyle(document.body).color;
+  ietsGetekend = false;
+  var pos = function(e){
+    var b = doek.getBoundingClientRect();
+    return [e.clientX - b.left, e.clientY - b.top];
+  };
+  doek.addEventListener('pointerdown', function(e){
+    e.preventDefault(); doek.setPointerCapture(e.pointerId);
+    tekent = true; var p = pos(e); dctx.beginPath(); dctx.moveTo(p[0], p[1]);
+  });
+  doek.addEventListener('pointermove', function(e){
+    if (!tekent) return;
+    e.preventDefault(); var p = pos(e); dctx.lineTo(p[0], p[1]); dctx.stroke();
+    if (!ietsGetekend){ ietsGetekend = true; doek.classList.add('vol'); }
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(n){
+    doek.addEventListener(n, function(){ tekent = false; });
+  });
+}
+function doekLeeg(){
+  if (!doek || !dctx) return;
+  dctx.clearRect(0, 0, doek.width, doek.height);
+  ietsGetekend = false; doek.classList.remove('vol');
+}
+function krabbelUit(){
+  if (!doek || !ietsGetekend) return null;
+  try { return doek.toDataURL('image/png'); } catch (e){ return null; }
+}
+function tekenKlaar(){
+  var k = krabbelUit();
+  if (!k){
+    var hint = document.querySelector('.tekenhint');
+    if (hint){
+      hint.textContent = 'Er staat nog geen handtekening — teken met je vinger op de lijn.';
+      hint.style.color = 'var(--stempel)';
+      doek.style.borderColor = 'var(--stempel)';
+    }
+    return;
+  }
+  if (KRABBEL.wie === 'ziggo'){
+    KRABBEL.ziggo = k; KRABBEL.wie = 'crew';
+    return teken();
+  }
+  KRABBEL.crew = k;
+  var moment = {
+    crew:BON.crew, ziggo:S.ziggo || 'Medewerker ' + BON.zaal,
+    tijd:Date.now(), krabbelCrew:KRABBEL.crew, krabbelZiggo:KRABBEL.ziggo
+  };
+  if (S.teken === 'afsluiting') S.afsluiting = moment; else S.ontvangst = moment;
+  S.scherm = 'bon'; S.stempelLandt = true;
+  bewaar(); teken();
+}
+
+/* ---- knopen leggen ------------------------------------------------------ */
+function koppel(){
+  var app = document.getElementById('app');
+
+  app.onclick = function(e){
+    var el = e.target.closest('button,[data-indexweg]');
+    if (!el || el.disabled) return;
+    var d = el.dataset;
+
+    if (d.kopieer){
+      try { navigator.clipboard.writeText(coderegel()); el.textContent = 'Gekopieerd'; } catch (x){}
+      return;
+    }
+    if (el.id === 'start'){
+      var n = document.getElementById('naam');
+      if (n) S.ziggo = n.value.trim();
+      if (!S.ziggo) return;
+      /* de uitkolom komt uit de link, en dit is het moment dat hij landt */
+      regelsMee().forEach(function(r){ if (S.UIT[r.no] === undefined) S.UIT[r.no] = String(meeW(r.no)); });
+      bewaar(); S.scherm = 'ctrl'; return teken();
+    }
+    if (d.gezien !== undefined){
+      var no = +d.gezien;
+      if (S.GEZIEN[no]) delete S.GEZIEN[no]; else S.GEZIEN[no] = true;
+      bewaar(); return teken();
+    }
+    if (d.alleszien){
+      lijst().forEach(function(r){ S.GEZIEN[r.no] = true; });
+      bewaar(); return teken();
+    }
+    if (d.wijzig !== undefined) return naarWijzig(+d.wijzig);
+    if (d.soort){ S.wijzigSoort = d.soort; return teken(); }
+    if (d.wijzigklaar) return wijzigKlaar();
+    if (d.meld) return meldNu();
+
+    /* het klavier */
+    if (d.cijfer !== undefined) return cijfer(d.cijfer);
+    if (d.wis) return wis();
+    if (d.geen) return geen();
+    if (d.door) return door();
+    if (d.vorige) return vorige();
+    if (d.alles) return alles();
+    if (d.maat !== undefined){ S.MAAT = +d.maat; S.VERS = null; S.ZEKER = false; return teken(); }
+    if (d.vorigart){ if (S.STAP > 0){ S.STAP--; S.MAAT = 0; S.VERS = null; } return teken(); }
+    if (d.volgart){ if (S.STAP < artenMee().length - 1){ S.STAP++; S.MAAT = 0; S.VERS = null; } return teken(); }
+    if (d.naarregel) return naarRegel(+d.naarregel);
+
+    /* tekenen en versturen */
+    if (d.leegdoek) return doekLeeg();
+    if (el.id === 'tekenklaar') return tekenKlaar();
+    if (d.stuur){
+      if (S.verzonden) return;
+      S.verzonden = true; teken();
+      setTimeout(function(){
+        S.verzonden = false;
+        window.location.href = 'https://wa.me/' + (BON.tel || '')
+          + '?text=' + encodeURIComponent(slotBericht());
+        teken();
+      }, 900);
+      return;
+    }
+
+    if (d.ga) return ga(d.ga);
+  };
+
+  /* Velden die niet opnieuw tekenen bij elke aanslag — dan springt de cursor
+     eruit. Alleen wat ernaast staat gaat mee. */
+  var nv = document.getElementById('naam');
+  if (nv) nv.addEventListener('input', function(){
+    S.ziggo = nv.value.trim();
+    var st = document.getElementById('start');
+    if (st) st.disabled = !S.ziggo;
+  });
+
+  var om = document.getElementById('omzet');
+  if (om) om.addEventListener('input', function(){
+    var v = om.value.replace(/[^0-9]/g, '').slice(0, 7);
+    om.value = v; S.omzet = v; bewaar();
+    /* de verschilregel eronder leest mee, maar het veld houdt de cursor */
+    var blok = om.closest('.geld');
+    if (blok){
+      var kv = kasVerschil();
+      var slot = blok.querySelector('.geldrij.slot');
+      if (slot){
+        slot.className = 'geldrij slot ' + (kv === null ? 'open' : (kv ? 'afwijk' : 'akkoord'));
+        slot.querySelector('b').textContent = kv === null ? '–' : eur(kv);
+      }
+    }
+    var k = app.querySelector('.voet .knop:last-child');
+    if (k) k.disabled = (omzetMplus() === null);
+  });
+  if (om) om.addEventListener('blur', teken);
+
+}
+
+/* ---- toetsenbord op een laptop ------------------------------------------ */
+document.addEventListener('keydown', function(e){
+  if (S.scherm !== 'tellen' && S.scherm !== 'wijzig') return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  var a = document.activeElement;
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
+  if (/^[0-9]$/.test(e.key)){ e.preventDefault(); return cijfer(e.key); }
+  if (e.key === 'Backspace'){ e.preventDefault(); return wis(); }
+  if (e.key === 'Enter' || e.key === 'ArrowRight'){
+    e.preventDefault();
+    return S.scherm === 'wijzig' ? wijzigKlaar() : door();
+  }
+  if (e.key === 'ArrowLeft'){ e.preventDefault(); return S.scherm === 'wijzig' ? ga('ctrl') : vorige(); }
+});
+window.addEventListener('resize', function(){ if (S.scherm === 'onderteken') doekOp(); });
+
+/* ---- een link die niet werkt --------------------------------------------
+   Dit scherm is er voor het geval dat WhatsApp de link heeft afgeknipt, of er
+   een oude link uit een eerdere avond wordt geopend. Dan staat er níét half
+   een lijst: doortellen op een onvolledige bon is erger dan niet tellen. */
+function schermGeenLink(){
+  return '<div class="blad">'
+    + '<div class="bonkop"><div style="min-width:0">'
+    + '<h1 class="bontitel">Telbon</h1>'
+    + '<div class="bonnr">geen geldige link</div></div></div>'
+    + '<div class="leegvel">'
+    + '<h1>Deze link is niet compleet</h1>'
+    + '<p class="uitleg">Er staat geen lijst in het adres. Meestal betekent dat '
+    + 'WhatsApp de link heeft afgeknipt bij het doorsturen.</p>'
+    + '<p class="uitleg">Vraag de crew om de link opnieuw te sturen, en open hem '
+    + 'rechtstreeks uit het bericht in plaats van hem te kopi\u00ebren.</p>'
+    + '</div></div>';
+}
+
+/* ---- opstarten ----------------------------------------------------------
+   De avond begint bij de link. Wat op deze telefoon bewaard staat wint: wie de
+   pagina kwijtraakt of zijn accu leeg ziet lopen komt terug waar hij was. De
+   sleutel hangt aan het bonnummer, zodat twee avonden op dezelfde telefoon
+   elkaar niet overschrijven. */
+(function(){
+  var hash = String(location.hash || '').replace(/^#/, '');
+  if (!hash || !uitpakken(hash)){
+    document.getElementById('app').className = 'scherm';
+    document.getElementById('app').innerHTML = '<div class="vel">' + schermGeenLink() + '</div>';
+    return;
+  }
+  S.ruimte = BON.ruimte;
+  var op = haalTerug();
+  S.ruimte = BON.ruimte;                /* haalTerug mag de ruimte niet omzetten */
+  if (op && (Object.keys(S.GEZIEN).length || Object.keys(S.TERUG).length)){
+    S.hersteld = op;
+    S.scherm = S.ontvangst ? 'bon' : 'ctrl';
+  } else {
+    regelsMee().forEach(function(r){ if (S.UIT[r.no] === undefined) S.UIT[r.no] = String(meeW(r.no)); });
+    S.scherm = 'open';
+  }
+  teken();
+})();
+</script>
+</body>
+</html>
