@@ -1810,6 +1810,18 @@ function schermGeenLink(){
   }
   teken();
 })();
+
+/* Een adres dat alleen achter de # verschilt laadt de pagina niet opnieuw. Doet
+   de club op dezelfde telefoon een tweede ruimte, of stuurt de crew een
+   verbeterde link na, dan verandert de hash wel maar blijft de oude bon staan —
+   en dan wordt er geteld op de verkeerde lijst zonder dat iemand het ziet.
+
+   Opnieuw laden is hier het goede antwoord en niet het luie: de telling staat in
+   localStorage onder het bonnummer, dus er gaat niets verloren, en de bon die
+   openstond komt terug zodra je zijn eigen link weer opent. */
+window.addEventListener('hashchange', function(){
+  location.reload();
+});
 </script>
 </body>
 </html>
