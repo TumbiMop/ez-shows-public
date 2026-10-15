@@ -34,6 +34,14 @@
     font-size:17px; line-height:1.4; -webkit-text-size-adjust:100%;
   }
   button,input{font-family:inherit; -webkit-tap-highlight-color:transparent}
+  /* Op een iPhone zoomt het scherm in zodra je twee keer snel achter elkaar
+     tikt. Bij tellen gebeurt dat de hele tijd: je slaat twee cijfers in, of
+     je tikt een regel aan en meteen de volgende, en dan staat het vel ineens
+     uitvergroot. touch-action:manipulation zet alleen die dubbeltik-zoom uit;
+     knijpen om in te zoomen blijft gewoon werken, en dat wil je houden voor
+     wie het klein ziet. */
+  html{ touch-action:manipulation; }
+  button,.regel,.trap,.alles,.klavier button{ touch-action:manipulation; }
 
   /* Een vaste hoogte, geen minimum. Met min-height groeit de lijst door de
      onderkant heen en staat de voet met Versturen onder de vouw — dat was op

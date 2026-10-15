@@ -91,6 +91,13 @@ body{
   -webkit-text-size-adjust:100%; font-synthesis-weight:none;
 }
 button,input,textarea{font-family:inherit; -webkit-tap-highlight-color:transparent}
+/* Zelfde als bij Stand Count: op een iPhone zoomt het scherm bij twee snelle
+   tikken, en tijdens het tellen tik je de hele tijd snel achter elkaar. Dit
+   zet alleen die dubbeltik-zoom uit; knijpen blijft werken. Het tekenveld
+   houdt zijn eigen touch-action:none, anders scrollt de pagina onder je
+   handtekening weg. */
+html{ touch-action:manipulation; }
+button,.regel,.trap,.ctrl,.ctrlnr,.alles,.klavier button{ touch-action:manipulation; }
 ::selection{ background:var(--oranje); color:#111110; }
 input,textarea{ caret-color:var(--oranje-diep); }
 :focus-visible{ outline:2px solid var(--oranje-diep); outline-offset:2px; border-radius:3px; }
